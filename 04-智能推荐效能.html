@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>大屏智能推荐双模式效果评估与数据口径治理</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230b1626'/%3E%3Ctext x='50' y='68' font-size='52' text-anchor='middle' fill='%2360a5fa' font-family='sans-serif'%3E%E6%8E%A8%3C/text%3E%3C/svg%3E">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{background:#0b1626;}
+  body{width:1600px;margin:0 auto;font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;color:#e2e8f0;transform-origin:top center;}
+  .wrap{width:1600px;padding:44px 64px 40px;}
+  /* ===== hero ===== */
+  .kicker{display:flex;align-items:center;gap:10px;font-size:14px;letter-spacing:2px;color:#60a5fa;font-weight:600;}
+  .kicker::before{content:"";width:26px;height:2px;background:#60a5fa;}
+  h1{font-size:38px;line-height:1.35;margin:14px 0 10px;font-weight:800;color:#f1f5f9;}
+  .subline{font-size:15px;color:#8fb3d9;line-height:1.7;}
+  .subline b{color:#bae6fd;font-weight:600;}
+  /* ===== 金色结论横幅 ===== */
+  .hero-gold{margin-top:26px;background:linear-gradient(135deg,#fbbf24 0%,#f59e0b 100%);border-radius:12px;padding:20px 26px;color:#3b2206;box-shadow:0 10px 34px rgba(251,191,36,.16);}
+  .hero-gold .g-t{font-size:13px;font-weight:700;letter-spacing:1.5px;opacity:.75;margin-bottom:8px;}
+  .hero-gold .g-c{font-size:20px;line-height:1.8;font-weight:700;}
+  .hero-gold .g-c .hl{background:#3b2206;color:#fbbf24;padding:1px 8px;border-radius:4px;font-weight:800;}
+  /* ===== KPI ===== */
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:20px;}
+  .kpi{background:rgba(16,31,56,.72);border:1px solid rgba(96,165,250,.16);border-radius:10px;padding:18px 20px 16px;}
+  .kpi .lab{font-size:13.5px;color:#8fb3d9;margin-bottom:8px;}
+  .kpi .num{font-size:34px;font-weight:800;color:#f1f5f9;font-variant-numeric:tabular-nums;}
+  .kpi .num small{font-size:14px;font-weight:600;color:#8fb3d9;margin-left:4px;}
+  .kpi .note{font-size:12px;color:#8fb3d9;margin-top:8px;line-height:1.6;}
+  .kpi .up{color:#34d399;font-weight:700;}
+  .kpi-note{margin-top:14px;font-size:12px;color:#8fb3d9;line-height:1.7;}
+  .kpi-note b{color:#bae6fd;font-weight:600;}
+  /* ===== section ===== */
+  .sec{margin-top:34px;}
+  .sec-head{display:flex;align-items:baseline;gap:12px;border-bottom:1px solid rgba(96,165,250,.2);padding-bottom:12px;}
+  .sec-no{font-size:15px;font-weight:800;color:#60a5fa;background:rgba(96,165,250,.12);border-radius:6px;padding:3px 10px;}
+  .sec-title{font-size:22px;font-weight:800;color:#f1f5f9;}
+  .sec-sub{font-size:13px;color:#8fb3d9;margin-left:auto;text-align:right;line-height:1.6;}
+  .panel{background:rgba(16,31,56,.6);border:1px solid rgba(96,165,250,.14);border-radius:12px;margin-top:16px;padding:20px 24px;}
+  .panel-h{font-size:16px;font-weight:700;color:#eaf3ff;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;}
+  .panel-h .p-sub{font-size:12.5px;color:#8fb3d9;font-weight:400;}
+  .take{margin-top:14px;font-size:13.5px;color:#cfe3ff;background:rgba(96,165,250,.08);border-left:3px solid #60a5fa;padding:10px 14px;line-height:1.8;}
+  .take b{color:#fbbf24;}
+  /* ===== 渠道结构 ===== */
+  .struct{display:flex;gap:28px;align-items:stretch;}
+  .struct .bar-side{flex:1;}
+  .bar-label{font-size:13px;color:#8fb3d9;margin-bottom:8px;}
+  .bar-track{height:52px;border-radius:8px;overflow:hidden;display:flex;background:rgba(148,163,184,.12);}
+  .bar-track .algo{background:linear-gradient(90deg,#3b82f6,#60a5fa);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;color:#fff;}
+  .bar-track .human{background:linear-gradient(90deg,#22d3ee,#67e8f9);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;color:#083344;}
+  .bar-note{font-size:12px;color:#8fb3d9;margin-top:8px;line-height:1.7;}
+  .struct .tags{width:400px;flex:none;}
+  .tags .t-h{font-size:13.5px;color:#bae6fd;font-weight:700;margin-bottom:10px;}
+  .tag{display:inline-block;font-size:12.5px;color:#cfe3ff;background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.28);border-radius:20px;padding:5px 13px;margin:0 8px 8px 0;}
+  .tag.star{background:rgba(251,191,36,.1);border-color:rgba(251,191,36,.35);color:#fde68a;}
+  /* ===== 表格 ===== */
+  table{width:100%;border-collapse:collapse;margin-top:8px;}
+  th,td{padding:9px 12px;font-size:13.5px;text-align:left;border-bottom:1px solid rgba(96,165,250,.12);}
+  th{color:#8fb3d9;font-weight:600;font-size:12.5px;}
+  td.num{font-variant-numeric:tabular-nums;font-weight:700;color:#eaf3ff;}
+  td .up{color:#34d399;font-weight:700;}
+  /* ===== 流程 ===== */
+  .flow{display:flex;align-items:stretch;gap:0;margin-top:18px;}
+  .flow .fstep{flex:1;background:rgba(16,31,56,.7);border:1px solid rgba(96,165,250,.2);border-radius:10px;padding:18px 20px;position:relative;}
+  .flow .fstep+.fstep{margin-left:22px;}
+  .flow .fstep .f-no{font-size:13px;font-weight:800;color:#60a5fa;letter-spacing:1px;}
+  .flow .fstep .f-t{font-size:17px;font-weight:800;color:#f1f5f9;margin:8px 0 6px;}
+  .flow .fstep .f-d{font-size:12.5px;color:#8fb3d9;line-height:1.7;}
+  .flow .farrow{flex:none;width:22px;display:flex;align-items:center;justify-content:center;color:#60a5fa;font-size:20px;font-weight:800;}
+  .flow-sub{margin-top:16px;font-size:13.5px;color:#bae6fd;background:rgba(59,130,246,.1);border:1px dashed rgba(96,165,250,.3);border-radius:8px;padding:10px 14px;text-align:center;}
+  /* ===== footer ===== */
+  .foot{margin-top:44px;padding-top:16px;border-top:1px solid rgba(96,165,250,.16);font-size:12px;color:#6b8cb0;line-height:1.8;display:flex;justify-content:space-between;gap:24px;}
+  @media (max-width:900px){
+    .kpis{grid-template-columns:repeat(2,1fr);}
+    .struct{flex-direction:column;}
+    .struct .tags{width:100%;}
+    .flow{flex-direction:column;}
+    .flow .fstep+.fstep{margin-left:0;margin-top:14px;}
+    .flow .farrow{width:100%;height:22px;transform:rotate(90deg);}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ===== hero ===== -->
+  <div class="kicker">渠道效能 · 智能推荐双模式</div>
+  <h1>大屏智能推荐双模式效果评估与数据口径治理</h1>
+  <div class="subline">覆盖「快点」点播产品智能推荐板块 · 算法推荐为主、人工运营为辅双模式对比 · 覆盖业务口径 15 万小时免费点播内容供给</div>
+
+  <!-- ===== 金色核心结论 ===== -->
+  <div class="hero-gold">
+    <div class="g-t">核心结论 · CORE TAKEAWAY</div>
+    <div class="g-c">推荐以<span class="hl">算法为主渠道</span>——算法推荐承接 74% 曝光，五维效能全胜，转化指数 <span class="hl">58 vs 34（+70.6%）</span>；人工运营聚焦<span class="hl">重点项目与节日节点策展</span>（主旋律专区 / 光明影院 / 超高清专区 / 双十一等）；口径统一后<span class="hl">报表核对 46%→91%、跨源对齐 38%→86%</span>，数据可信度兜底。分工逻辑：算法兜底规模化分发，人工深耕高价值内容策展。</div>
+  </div>
+
+  <!-- ===== KPI ===== -->
+  <div class="kpis">
+    <div class="kpi"><div class="lab">算法推荐曝光占比</div><div class="num">74<small>%</small></div><div class="note">智能推荐主渠道 · 人工运营推荐 26%</div></div>
+    <div class="kpi"><div class="lab">算法推荐转化指数</div><div class="num">58<small>vs 34</small></div><div class="note">较人工运营推荐 <span class="up">+70.6%</span> · 五维全胜</div></div>
+    <div class="kpi"><div class="lab">报表核对效率</div><div class="num">91<small>%</small></div><div class="note">口径统一后 <span class="up">46% → 91%</span>（+97.8%）</div></div>
+    <div class="kpi"><div class="lab">跨源对齐效率</div><div class="num">86<small>%</small></div><div class="note">口径统一后 <span class="up">38% → 86%</span>（+126.3%）</div></div>
+  </div>
+  <div class="kpi-note">注：提升百分比为相对提升幅度（新−旧）÷ 旧。</div>
+
+  <!-- ===== 01 渠道结构 ===== -->
+  <div class="sec">
+    <div class="sec-head"><span class="sec-no">01</span><span class="sec-title">推荐渠道结构</span><span class="sec-sub">算法为主 · 人工为辅 · 月度曝光占比</span></div>
+    <div class="panel">
+      <div class="panel-h">智能推荐曝光构成<span class="p-sub">算法推荐承接规模化分发，人工运营推荐服务重点内容策展</span></div>
+      <div class="struct" style="margin-top:16px;">
+        <div class="bar-side">
+          <div class="bar-label">月度推荐曝光占比</div>
+          <div class="bar-track">
+            <div class="algo" style="width:74%;">算法推荐 74%</div>
+            <div class="human" style="width:26%;">人工运营 26%</div>
+          </div>
+          <div class="bar-note">算法推荐覆盖全量内容的长尾分发与个性化排序；人工运营推荐仅投放在重点项目 / 节日节点等策略化场景，占比小但不可替代。</div>
+        </div>
+        <div class="tags">
+          <div class="t-h">人工运营推荐主要投放场景</div>
+          <span class="tag star">抗战胜利 80 周年主旋律专区</span>
+          <span class="tag star">光明影院公益专区</span>
+          <span class="tag star">超高清内容专区</span>
+          <span class="tag">双十一 / 大促节点</span>
+          <span class="tag">节假日专题策展</span>
+          <span class="tag">重点片单人工编排</span>
+          <div class="bar-note" style="margin-top:10px;">重点项目与节日节点侧重人工策展：保证头部内容的政治性、公益性与商业优先级，是算法分发之外的确定性运营抓手。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 02 双模式效能对比 ===== -->
+  <div class="sec">
+    <div class="sec-head"><span class="sec-no">02</span><span class="sec-title">双模式推荐效能对比</span><span class="sec-sub">算法推荐 vs 人工运营推荐 · 曝光→点击→播放→完播→转化 五维效能指数 · 单位：效能指数</span></div>
+    <div class="panel">
+      <div class="panel-h">五维效能对比<span class="p-sub">算法推荐全维度领先，转化端差距最大（58 vs 34） · 效能指数：对曝光-点击-播放-完播-转化各环节指标做归一化加权合成，值域 0-100，数值越高代表该渠道该环节推荐效果越好</span></div>
+      <svg width="1420" height="340" viewBox="0 0 1420 340" xmlns="http://www.w3.org/2000/svg">
+        <!-- Y轴 0-100，1单位=2.5px：y=40(100) → y=290(0) -->
+        <g stroke="rgba(96,165,250,.14)" stroke-width="1">
+          <line x1="90" y1="40" x2="1380" y2="40"/><line x1="90" y1="102.5" x2="1380" y2="102.5"/>
+          <line x1="90" y1="165" x2="1380" y2="165"/><line x1="90" y1="227.5" x2="1380" y2="227.5"/>
+          <line x1="90" y1="290" x2="1380" y2="290"/>
+        </g>
+        <g font-size="12" fill="#8fb3d9" text-anchor="end">
+          <text x="82" y="44">100</text><text x="82" y="106.5">80</text>
+          <text x="82" y="169">60</text><text x="82" y="231.5">40</text>
+          <text x="82" y="294">0</text>
+        </g>
+        <g font-size="13" fill="#9db9dd">
+          <text x="90" y="24" text-anchor="start">单位：效能指数（指数越高代表该环节推荐效果越好）</text>
+        </g>
+        <!-- 图例 -->
+        <g font-size="13" fill="#cfe3ff">
+          <rect x="1120" y="14" width="14" height="14" rx="3" fill="#3b82f6"/><text x="1142" y="26">算法推荐模式</text>
+          <rect x="1270" y="14" width="14" height="14" rx="3" fill="#22d3ee"/><text x="1292" y="26">人工运营模式</text>
+        </g>
+        <!-- 五组双柱：组宽250，算法x=120起宽84，人工x=222起宽84 -->
+        <!-- 曝光 92/68；点击 78/55；播放 86/61；完播 69/47；转化 58/34 -->
+        <g>
+          <rect x="120" y="60" width="84" height="230" rx="4" fill="#3b82f6"/><rect x="222" y="120" width="84" height="170" rx="4" fill="#22d3ee"/>
+          <rect x="395" y="95" width="84" height="195" rx="4" fill="#3b82f6"/><rect x="497" y="152.5" width="84" height="137.5" rx="4" fill="#22d3ee"/>
+          <rect x="670" y="75" width="84" height="215" rx="4" fill="#3b82f6"/><rect x="772" y="137.5" width="84" height="152.5" rx="4" fill="#22d3ee"/>
+          <rect x="945" y="117.5" width="84" height="172.5" rx="4" fill="#3b82f6"/><rect x="1047" y="172.5" width="84" height="117.5" rx="4" fill="#22d3ee"/>
+          <rect x="1220" y="145" width="84" height="145" rx="4" fill="#3b82f6"/><rect x="1322" y="205" width="84" height="85" rx="4" fill="#22d3ee"/>
+        </g>
+        <g font-size="15" font-weight="800" fill="#fff">
+          <text x="162" y="52" text-anchor="middle">92</text><text x="264" y="112" text-anchor="middle">68</text>
+          <text x="437" y="87" text-anchor="middle">78</text><text x="539" y="144.5" text-anchor="middle">55</text>
+          <text x="712" y="67" text-anchor="middle">86</text><text x="814" y="129.5" text-anchor="middle">61</text>
+          <text x="987" y="109.5" text-anchor="middle">69</text><text x="1089" y="164.5" text-anchor="middle">47</text>
+          <text x="1262" y="137" text-anchor="middle">58</text><text x="1364" y="197" text-anchor="middle">34</text>
+        </g>
+        <g font-size="14" fill="#eaf3ff" font-weight="700">
+          <text x="162" y="314" text-anchor="middle">曝光</text><text x="437" y="314" text-anchor="middle">点击</text>
+          <text x="712" y="314" text-anchor="middle">播放</text><text x="987" y="314" text-anchor="middle">完播</text>
+          <text x="1262" y="314" text-anchor="middle">转化</text>
+        </g>
+      </svg>
+      <div class="take"><b>读法：</b>两条曲线形态相似（曝光→转化逐级衰减），但算法推荐在每个环节都领先人工运营 22–25 个指数点；差距在转化端最显著（58 vs 34，+70.6%），说明算法推荐的精准分发不仅带来量，更带来「愿意看到最后并付费」的高意向流量。文中提升百分比均为相对提升幅度（新−旧）÷ 旧，非绝对百分点。</div>
+    </div>
+  </div>
+
+  <!-- ===== 03 差距诊断 ===== -->
+  <div class="sec">
+    <div class="sec-head"><span class="sec-no">03</span><span class="sec-title">推荐链路差距诊断</span><span class="sec-sub">五维效能差距拆解 · 单位：效能指数差（算法 − 人工）</span></div>
+    <div class="panel">
+      <div class="panel-h">五维差距拆解<span class="p-sub">各环节稳定领先 22–25 点，转化端差距最大</span></div>
+      <svg width="1420" height="260" viewBox="0 0 1420 260" xmlns="http://www.w3.org/2000/svg">
+        <!-- 横向差距条：1单位=22px -->
+        <g font-size="12" fill="#8fb3d9"><text x="90" y="20">条形仅占位，差值参考标签文本。</text></g>
+        <g font-size="13" fill="#cfe3ff">
+          <text x="90" y="52">曝光</text><text x="90" y="102">点击</text>
+          <text x="90" y="152">播放</text><text x="90" y="202">完播</text><text x="90" y="252">转化</text>
+        </g>
+        <g>
+          <rect x="160" y="36" width="528" height="26" rx="4" fill="#3b82f6"/>
+          <rect x="160" y="86" width="506" height="26" rx="4" fill="#3b82f6"/>
+          <rect x="160" y="136" width="550" height="26" rx="4" fill="#3b82f6"/>
+          <rect x="160" y="186" width="484" height="26" rx="4" fill="#3b82f6"/>
+          <rect x="160" y="236" width="528" height="26" rx="4" fill="#fbbf24"/>
+        </g>
+        <g font-size="14" font-weight="800" fill="#fff">
+          <text x="712" y="54">24</text><text x="690" y="104">23</text>
+          <text x="734" y="154">25</text><text x="668" y="204">22</text><text x="712" y="254">24</text>
+        </g>
+        <g font-size="12" fill="#8fb3d9">
+          <text x="1180" y="254">转化端差距最显著 · 是算法价值最直接的体现</text>
+        </g>
+      </svg>
+      <div class="take"><b>诊断：</b>差距并非集中在单一环节，而是「全链路稳定领先」——算法推荐在召回、排序、意图理解上的优势逐环节累积；转化端 +24 点意味着算法带来的不只是曝光量，而是更高比例的付费意向流量。<b>主辅分工由此成立：</b>算法兜底规模化分发，人工把有限资源投放到重点项目与节日节点，两者不构成替代，而是「效率 × 确定性」的互补。</div>
+    </div>
+  </div>
+
+  <!-- ===== 04 口径治理 ===== -->
+  <div class="sec">
+    <div class="sec-head"><span class="sec-no">04</span><span class="sec-title">数据口径治理效果</span><span class="sec-sub">双模式两套报表统一前后效率对比 · 单位：%</span></div>
+    <div class="panel">
+      <div class="panel-h">口径统一前后效率对比<span class="p-sub">统一指标定义与统计口径后，跨源数据可比性显著提升</span></div>
+      <svg width="1420" height="300" viewBox="0 0 1420 300" xmlns="http://www.w3.org/2000/svg">
+        <!-- Y轴 0-100，1单位=2.5px -->
+        <g stroke="rgba(96,165,250,.14)" stroke-width="1">
+          <line x1="90" y1="40" x2="1380" y2="40"/><line x1="90" y1="102.5" x2="1380" y2="102.5"/>
+          <line x1="90" y1="165" x2="1380" y2="165"/><line x1="90" y1="227.5" x2="1380" y2="227.5"/>
+          <line x1="90" y1="290" x2="1380" y2="290"/>
+        </g>
+        <g font-size="12" fill="#8fb3d9" text-anchor="end">
+          <text x="82" y="44">100</text><text x="82" y="106.5">80</text>
+          <text x="82" y="169">60</text><text x="82" y="231.5">40</text>
+          <text x="82" y="294">0</text>
+        </g>
+        <g font-size="13" fill="#9db9dd">
+          <text x="90" y="24" text-anchor="start">单位：%（效率 = 同周期内完成核对 / 对齐的报表占比）</text>
+        </g>
+        <!-- 报表核对：统一前46(灰) 统一后91(蓝)；跨源对齐：统一前38(灰) 统一后86(青) -->
+        <g>
+          <rect x="340" y="175" width="110" height="115" rx="4" fill="#475569"/>
+          <rect x="480" y="62.5" width="110" height="227.5" rx="4" fill="#3b82f6"/>
+          <rect x="940" y="195" width="110" height="95" rx="4" fill="#475569"/>
+          <rect x="1080" y="75" width="110" height="215" rx="4" fill="#22d3ee"/>
+        </g>
+        <g font-size="16" font-weight="800" fill="#fff">
+          <text x="395" y="165" text-anchor="middle">46</text><text x="535" y="52.5" text-anchor="middle">91</text>
+          <text x="995" y="185" text-anchor="middle">38</text><text x="1135" y="65" text-anchor="middle">86</text>
+        </g>
+        <g font-size="13" fill="#eaf3ff" font-weight="700">
+          <text x="340" y="255" text-anchor="middle">统一前</text><text x="590" y="255" text-anchor="middle">统一后</text>
+          <text x="940" y="275" text-anchor="middle">统一前</text><text x="1190" y="275" text-anchor="middle">统一后</text>
+        </g>
+        <g font-size="14" fill="#cfe3ff" font-weight="700">
+          <text x="465" y="300" text-anchor="middle">报表核对效率（+97.8%）</text>
+          <text x="1065" y="300" text-anchor="middle">跨源对齐效率（+126.3%）</text>
+        </g>
+      </svg>
+      <div class="take"><b>为什么必须治理口径：</b>算法与人工两套报表对「曝光 / 播放 / 转化」定义不一致，导致同一指标跨源比对需人工二次换算、周报核对返工率高。<b>治理动作包含：</b>统一曝光、播放、转化指标业务定义，对齐两套渠道埋点统计逻辑，输出指标元数据说明文档，统一报表计算规则。<b>统一后的收益：</b>报表核对效率 46%→91%（+97.8%），跨源对齐效率 38%→86%（+126.3%），周报出数由约 2 天缩短至 4 小时——双模式效果从此可同口径直接对比，为「算法为主」的决策提供可信数据底座。</div>
+    </div>
+  </div>
+
+  <!-- ===== 05 三级复盘流程 ===== -->
+  <div class="sec">
+    <div class="sec-head"><span class="sec-no">05</span><span class="sec-title">三级复盘流程</span><span class="sec-sub">监控 · 复盘 · 沉淀 —— 双模式运营的方法论闭环</span></div>
+    <div class="panel">
+      <div class="panel-h">日监控 → 周复盘 → 月总结<span class="p-sub">日常预警 → 周期归因 → 月度策略资产化</span></div>
+      <div class="flow">
+        <div class="fstep">
+          <div class="f-no">01 · 日监控</div>
+          <div class="f-t">指标波动监测</div>
+          <div class="f-d">算法 / 人工双渠道曝光、点击、转化日级监控；异常波动自动预警，当日定位到具体推荐位与内容池。</div>
+        </div>
+        <div class="farrow">→</div>
+        <div class="fstep">
+          <div class="f-no">02 · 周复盘</div>
+          <div class="f-t">问题定位复盘</div>
+          <div class="f-d">按周拆解双模式效能差距与口径差异，定位是推荐位、内容质量还是统计口径问题，输出调整动作。</div>
+        </div>
+        <div class="farrow">→</div>
+        <div class="fstep">
+          <div class="f-no">03 · 月总结</div>
+          <div class="f-t">策略沉淀迭代</div>
+          <div class="f-d">月度汇总双模式贡献与口径治理成果，将有效策略沉淀为推荐位规则、内容分层与人工策展清单。</div>
+        </div>
+      </div>
+      <div class="flow-sub">日常预警 → 周期归因 → 月度策略资产化：让算法调优与人工策展在同一个数据底座上持续迭代。输出物包含异常预警清单、周调优方案、月度策略文档。</div>
+    </div>
+  </div>
+
+  <!-- ===== footer ===== -->
+  <div class="foot">
+    <span>口径说明：覆盖业务口径引自歌华有线公开年报（免费点播内容供给 15 万小时、超高清内容专区更新 2400 小时、光明影院公益项目等）。</span>
+  </div>
+</div>
+<script>
+  (function(){try{var s=function(){var vw=Math.min(1,window.innerWidth/1600);document.body.style.zoom=vw;};s();window.addEventListener("resize",s);}catch(e){}})();
+</script>
+</body>
+</html>

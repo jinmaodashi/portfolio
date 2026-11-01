@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>大屏点播货架资源位对照测试与付费转化提升</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%230a2e31'/%3E%3Crect x='4' y='9' width='5' height='11' rx='1.5' fill='%232dd4bf'/%3E%3Crect x='9.5' y='4' width='5' height='16' rx='1.5' fill='%2367e8f9'/%3E%3Crect x='15' y='7' width='5' height='13' rx='1.5' fill='%23fbbf24'/%3E%3C/svg%3E">
+<style>
+  :root{
+    --bg:#051b1d; --panel:#0a2e31; --panel2:#0d3a3e;
+    --teal:#2dd4bf; --cyan:#67e8f9; --gold:#fbbf24; --green:#34d399;
+    --gray:#64748b; --txt:#e2f5f1; --sub:#9ad8cf; --dim:#7fd4c9;
+    --line:rgba(45,212,191,.22);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{background:#031314}
+  body{background:radial-gradient(1200px 600px at 78% -8%, rgba(45,212,191,.14), transparent 60%), radial-gradient(900px 500px at 8% 0%, rgba(103,232,249,.10), transparent 55%), #051b1d; color:var(--txt); font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;}
+  .wrap{width:1480px;margin:0 auto;padding:28px 30px 34px;}
+  .kicker{font-size:13px;font-weight:700;letter-spacing:4px;color:var(--teal);}
+  h1{font-size:34px;font-weight:800;margin:8px 0 6px;color:#f0fdfa;letter-spacing:1px;}
+  .subline{font-size:14px;color:var(--sub);line-height:1.6;}
+  /* 核心结论横幅 */
+  .hero{margin-top:18px;background:linear-gradient(95deg, rgba(251,191,36,.15), rgba(45,212,191,.08) 55%, rgba(251,191,36,.10));border:1px solid rgba(251,191,36,.5);border-radius:12px;padding:15px 22px;}
+  .hero-tag{display:inline-block;font-size:13px;font-weight:700;color:#fcd34d;letter-spacing:3px;border-right:1px dashed rgba(251,191,36,.4);padding-right:12px;margin-right:12px;}
+  .hero-main{font-size:15.5px;color:#fef3c7;font-weight:600;line-height:1.75;}
+  .hero-main .hl{color:#fbbf24;font-weight:800;font-size:17px;padding:1px 6px;border-radius:5px;background:rgba(251,191,36,.16);white-space:nowrap;}
+  .hero-sub{font-size:13px;color:#fde68a;margin-top:6px;line-height:1.6;}
+  /* KPI */
+  .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:16px;}
+  .kpi{background:linear-gradient(165deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:12px;padding:15px 18px;}
+  .kpi .lab{font-size:12.5px;color:var(--dim);letter-spacing:1px;margin-bottom:6px;}
+  .kpi .num{font-size:29px;font-weight:800;color:#f0fdfa;font-variant-numeric:tabular-nums;}
+  .kpi .num small{font-size:15px;color:var(--teal);font-weight:700;}
+  .kpi .note{font-size:11.5px;color:var(--sub);margin-top:7px;line-height:1.55;}
+  /* 模块 */
+  .sec{margin-top:22px;}
+  .sec-head{display:flex;align-items:baseline;gap:12px;margin-bottom:12px;}
+  .sec-no{font-size:13px;font-weight:800;color:var(--gold);letter-spacing:2px;}
+  .sec-title{font-size:19px;font-weight:800;color:#f0fdfa;}
+  .sec-sub{font-size:12.5px;color:var(--sub);}
+  .panel{background:linear-gradient(170deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:12px;padding:18px 22px;}
+  .panel-h{font-size:15px;font-weight:800;color:#eafff9;margin-bottom:4px;}
+  .panel-h .p-sub{font-size:12px;color:var(--sub);font-weight:400;margin-left:8px;}
+  .take{margin-top:12px;font-size:13.5px;color:var(--txt);line-height:1.7;background:rgba(45,212,191,.08);border-left:3px solid var(--teal);padding:9px 14px;border-radius:0 8px 8px 0;}
+  .take b{color:var(--cyan);}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  /* 决策优先级（首屏） */
+  .prio-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:14px;}
+  .prio{display:flex;align-items:center;gap:14px;background:linear-gradient(160deg,#0d3a3e,#0a2e31);border:1px solid rgba(251,191,36,.4);border-radius:12px;padding:13px 16px;}
+  .prio .rank{font-size:22px;font-weight:800;color:#fbbf24;min-width:34px;text-align:center;}
+  .prio .t1{font-size:14.5px;font-weight:700;color:#fff;margin-bottom:3px;}
+  .prio .t2{font-size:12px;color:#9ad8cf;}
+  .prio .impact{flex-shrink:0;font-size:11px;font-weight:700;color:#bff3ea;border:1px solid rgba(45,212,191,.5);border-radius:11px;padding:3px 8px;letter-spacing:1px;}
+  /* 表格 */
+  .tbl{width:100%;border-collapse:collapse;margin-top:10px;}
+  .tbl th{background:rgba(45,212,191,.14);color:#bff3ea;text-align:left;padding:9px 12px;font-size:12.5px;letter-spacing:1px;font-weight:700;}
+  .tbl td{padding:9px 12px;border-bottom:1px solid rgba(45,212,191,.12);color:#eafff9;font-size:13.5px;font-variant-numeric:tabular-nums;}
+  .tbl tr.grp td{background:rgba(103,232,249,.06);}
+  .tbl .c{color:#9ad8cf;font-size:12.5px;font-weight:700;letter-spacing:1px;}
+  /* 漏斗左右布局 */
+  .funnel-flex{display:flex;gap:24px;align-items:stretch;}
+  .funnel-l{flex:0 0 780px;}
+  .funnel-r{flex:1;display:flex;flex-direction:column;justify-content:center;border-left:1px solid rgba(45,212,191,.18);padding-left:22px;}
+  .funnel-r .fr-title{font-size:15.5px;font-weight:800;color:#eafff9;margin-bottom:10px;}
+  .fr-line{font-size:13.5px;color:#fde68a;margin-bottom:12px;line-height:1.6;}
+  .fr-item{font-size:13px;color:#9ad8cf;line-height:1.9;}
+  .fr-item b{color:#2dd4bf;font-weight:800;}
+  .fr-total{font-size:13px;color:#fcd34d;margin-top:10px;}
+  .fr-take{margin-top:14px;font-size:12.5px;color:#eafff9;background:rgba(45,212,191,.08);border-left:2px solid #2dd4bf;padding:8px 12px;line-height:1.7;}
+  @media (max-width:900px){
+    .funnel-flex{flex-direction:column;}
+    .funnel-l{flex:none;width:100%;}
+    .funnel-l svg{width:100%;height:auto;}
+    .funnel-r{border-left:none;border-top:1px solid rgba(45,212,191,.18);padding-left:0;padding-top:14px;}
+  }
+  /* 决策建议 */
+  .adv-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+  .adv{background:linear-gradient(160deg,#0d3a3e,#0a2e31);border:1px solid rgba(45,212,191,.3);border-radius:12px;padding:16px 18px;}
+  .adv .no{font-size:13px;font-weight:800;color:#fbbf24;letter-spacing:2px;}
+  .adv .impact{display:inline-block;float:right;font-size:11.5px;font-weight:700;color:#bff3ea;border:1px solid rgba(45,212,191,.5);border-radius:12px;padding:2px 9px;letter-spacing:1px;}
+  .adv h4{font-size:16px;margin:8px 0 6px;color:#fff;}
+  .adv p{font-size:13.5px;color:#9ad8cf;line-height:1.65;margin:0;}
+  .foot{margin-top:24px;padding-top:14px;border-top:1px solid var(--line);font-size:12px;color:var(--sub);display:flex;justify-content:space-between;align-items:center;line-height:1.7;}
+  .foot .demo{color:#9ad8cf;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <!-- ===== 头部 ===== -->
+  <div class="kicker">快点内容货架 · 策略实验复盘</div>
+  <h1>大屏点播货架资源位对照测试与付费转化提升</h1>
+  <div class="subline">货架策略迭代 P1-P6 六期 · 平峰月 30 天 + 假期周 7 天双窗口 · 覆盖有线电视缴费用户 390.6 万户</div>
+
+  <!-- ===== 核心结论 ===== -->
+  <div class="hero">
+    <div class="hero-main">
+      <span class="hero-tag">核心结论</span>
+      在开机率约四成的存量盘子里，点播付费提升靠<span class="hl">「精准分层 + 资源位倾斜」而非放量</span>——内容分层后高效内容指数 <span class="hl">72→91（+26.4%）</span>，货架整体付费转化率 <span class="hl">1.88% → 2.00%（+6.4%，口径：付费订单 ÷ 有效播放）</span>；假期窗口日均曝光 <span class="hl">+37%</span> 是确定性流量红利。
+    </div>
+    <div class="hero-sub">迭代优先级：资源优先投向高转化垂类（影 / 剧）＞ 假期峰值运营 ＞ 低效内容下架 / 换新</div>
+  </div>
+
+  <!-- ===== 决策优先级 ===== -->
+  <div class="prio-row">
+    <div class="prio">
+      <div class="rank">01</div>
+      <div style="flex:1">
+        <div class="t1">资源位向高转化垂类倾斜</div>
+        <div class="t2">影 / 剧前置已验证 · 未放量订单 +12.7%</div>
+      </div>
+      <span class="impact">影响 · 高</span>
+    </div>
+    <div class="prio">
+      <div class="rank">02</div>
+      <div style="flex:1">
+        <div class="t1">假期峰值集中运营</div>
+        <div class="t2">开机率 +7pp · 播放率 +6.0pp 确定性窗口</div>
+      </div>
+      <span class="impact">影响 · 中高</span>
+    </div>
+    <div class="prio">
+      <div class="rank">03</div>
+      <div style="flex:1">
+        <div class="t1">低效内容下架 / 换新</div>
+        <div class="t2">指数 35 仍为最低 · 滚动释放货架位</div>
+      </div>
+      <span class="impact">影响 · 中</span>
+    </div>
+  </div>
+
+  <!-- ===== KPI ===== -->
+  <div class="kpi-row">
+    <div class="kpi"><div class="lab">覆盖缴费用户</div><div class="num">390.6<small>万户</small></div><div class="note">2024 年报口径 · 大屏点播潜在触达池</div></div>
+    <div class="kpi"><div class="lab">高效内容指数</div><div class="num">91<small>（72→91）</small></div><div class="note">内容分层后高效层指数 +26.4% · 策略核心产出</div></div>
+    <div class="kpi"><div class="lab">整体付费转化率</div><div class="num">2.00<small>%</small></div><div class="note">1.88% → 2.00% · 相对 +6.4% · 按付费订单 ÷ 有效播放</div></div>
+    <div class="kpi"><div class="lab">假期日均曝光</div><div class="num">31.2<small>万人次</small></div><div class="note">较平峰日均 22.8 万 +37% · 开机率 33%→40%</div></div>
+  </div>
+
+  <!-- ===== 01 量价拆解与目标差距 ===== -->
+  <div class="sec">
+    <div class="sec-head"><span class="sec-no">01</span><span class="sec-title">量价拆解：曝光 → 播放 → 付费</span><span class="sec-sub">平峰月 30 天口径 · 还原增长路径与流失点</span></div>
+    <div class="panel">
+      <div class="panel-h">货架转化链路<span class="p-sub">有效播放率 54.0% 为最大流失环节 · 平峰月 30 天口径，与 P1-P6（单期 7 天）统计周期不同，仅用于缺口归因，不可直接数值对比</span></div>
+      <div class="funnel-flex">
+        <div class="funnel-l">
+          <svg width="780" height="360" viewBox="0 0 780 360" xmlns="http://www.w3.org/2000/svg">
+            <!-- 收窄漏斗：曝光685万 → 播放370万(54.0%) → 订单7.03万(1.9%) -->
+            <polygon points="170,40 610,40 490,160 290,160" fill="rgba(45,212,191,.88)"/>
+            <polygon points="290,160 490,160 420,280 360,280" fill="rgba(103,232,249,.78)"/>
+            <polygon points="360,280 420,280 405,320 375,320" fill="rgba(251,191,36,.9)"/>
+            <!-- 漏斗内数值与标识 -->
+            <text x="390" y="96" text-anchor="middle" font-size="21" font-weight="800" fill="#fff">685 万人次</text>
+            <text x="390" y="121" text-anchor="middle" font-size="12.5" fill="#fde68a">货架曝光</text>
+            <text x="390" y="216" text-anchor="middle" font-size="18" font-weight="800" fill="#fff">370 万次</text>
+            <text x="390" y="242" text-anchor="middle" font-size="12.5" fill="#fde68a">有效播放 · 54.0%</text>
+            <text x="390" y="304" text-anchor="middle" font-size="15" font-weight="800" fill="#fff">7.03 万单</text>
+            <text x="390" y="322" text-anchor="middle" font-size="11.5" fill="#fde68a">付费订单</text>
+            <!-- 右侧流失标注 -->
+            <text x="640" y="104" font-size="12.5" fill="#9ad8cf">→ 流失 315 万次 · 46.0%</text>
+            <text x="640" y="224" font-size="12.5" fill="#9ad8cf">→ 未转付费 363 万次</text>
+            <text x="640" y="300" font-size="12.5" fill="#9ad8cf">→ 对播放转化 1.9%</text>
+          </svg>
+        </div>
+        <div class="funnel-r">
+          <div class="fr-title">订单缺口与归因</div>
+          <div class="fr-line">目标 8.0 万单 vs 实际 7.03 万单 → 缺口 0.97 万单（-12.1%）</div>
+          <div class="fr-item"><b>①</b> 播放率 54.0% 未达计划 55% → 拖累约 0.37 万单</div>
+          <div class="fr-item"><b>②</b> 综 / 少儿垂类转化低于影 / 剧 → 拖累约 0.45 万单</div>
+          <div class="fr-item"><b>③</b> 平峰窗口缺假期增量 → 拖累约 0.15 万单</div>
+          <div class="fr-total">三项合计 = 0.97 万单，与订单缺口一致</div>
+          <div class="fr-take">核心流失在曝光 → 播放（-46.0%），先于付费环节发生；缺口最大单一归因是垂类结构，指向「资源向高转化垂类倾斜」而非盲目放量。各项拖累为模型拆分估算值，多因素存在叠加效应。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 02 资源位对照测试 ===== -->
+  <div class="sec">
+    <div class="sec-head"><span class="sec-no">02</span><span class="sec-title">资源位对照测试</span><span class="sec-sub">对照组（原货架排序）vs 实验组（影 / 剧前置 + 少儿专区）· 各 21 天（P1-P3 / P4-P6 合计）</span></div>
+    <div class="panel">
+      <div style="font-size:12px;color:#9ad8cf;margin-bottom:6px;">单位：曝光 / 有效播放 · 万人次；付费订单 · 万单</div>
+      <svg width="1420" height="300" viewBox="0 0 1420 300" xmlns="http://www.w3.org/2000/svg">
+        <!-- 三组双柱：曝光 / 有效播放（万人次）同量纲，付费订单（万单） -->
+        <g font-size="13" fill="#9ad8cf">
+          <text x="120" y="44" text-anchor="middle">货架曝光（万人次）</text>
+          <text x="600" y="44" text-anchor="middle">有效播放（万次）</text>
+          <text x="1080" y="44" text-anchor="middle">付费订单（万单）</text>
+        </g>
+        <g font-size="12" fill="#9ad8cf">
+          <text x="250" y="66" text-anchor="middle">对照组</text><text x="370" y="66" text-anchor="middle">实验组</text>
+        </g>
+        <!-- 柱区 y 底=270，曝光高=478/494 → 1万=0.5px；有效播放 256/271 同刻度；订单 4.81/5.42 → 1万=26px -->
+        <g>
+          <!-- 曝光 -->
+          <rect x="150" y="31" width="80" height="239" rx="4" fill="#64748b"/>
+          <rect x="330" y="23" width="80" height="247" rx="4" fill="rgba(45,212,191,.85)"/>
+          <!-- 有效播放 -->
+          <rect x="530" y="142" width="80" height="128" rx="4" fill="#64748b"/>
+          <rect x="710" y="134.5" width="80" height="135.5" rx="4" fill="rgba(103,232,249,.8)"/>
+          <!-- 订单 -->
+          <rect x="970" y="145" width="80" height="125" rx="4" fill="#64748b"/>
+          <rect x="1150" y="129" width="80" height="141" rx="4" fill="rgba(251,191,36,.85)"/>
+        </g>
+        <g font-size="15" font-weight="800" fill="#fff">
+          <text x="190" y="22" text-anchor="middle">478</text><text x="370" y="14" text-anchor="middle">494</text>
+          <text x="570" y="133" text-anchor="middle">256</text><text x="750" y="125" text-anchor="middle">271</text>
+          <text x="1010" y="136" text-anchor="middle">4.81</text><text x="1190" y="120" text-anchor="middle">5.42</text>
+        </g>
+        <g font-size="12.5" fill="#fde68a">
+          <text x="370" y="300" text-anchor="middle">曝光 +3.2%</text>
+          <text x="750" y="300" text-anchor="middle">播放率 53.5% → 54.9%</text>
+          <text x="1190" y="300" text-anchor="middle">订单 +12.7%</text>
+        </g>
+        <g font-size="12" fill="#9ad8cf">
+          <text x="190" y="320" text-anchor="middle">对照组 478 万</text>
+          <text x="370" y="320" text-anchor="middle">实验组 494 万</text>
+          <text x="570" y="320" text-anchor="middle">256 万</text>
+          <text x="750" y="320" text-anchor="middle">271 万</text>
+          <text x="1010" y="320" text-anchor="middle">4.81 万</text>
+          <text x="1190" y="320" text-anchor="middle">5.42 万</text>
+        </g>
+      </svg>
+      <div class="take"><b>读法：</b>实验组未放量（曝光仅 +3.2%），订单却 +12.7%——增量全部来自结构优化：影 / 剧前置提升有效播放率（+1.4pp），付费转化率 1.88% → 2.00%，验证「资源位倾斜」优于「铺量」。</div>
+    </div>
+  </div>
+
+  <!-- ===== 03 垂类转化趋势 ===== -->
+  <div class="sec">
+    <div class="sec-head"><span class="sec-no">03</span><span class="sec-title">垂类相对付费转化指数趋势</span><span class="sec-sub">P1-P6 六期策略迭代 · 指数口径</span></div>
+    <div class="panel">
+      <div class="panel-h">影 / 剧 / 综 / 少儿四垂类<span class="p-sub">相对付费转化指数：以基线期整体转化为基准做标准化，数值越高代表垂类付费转化能力越强 · 整体付费转化率 1.88% → 2.00%（+6.4%）</span></div>
+      <svg width="1420" height="330" viewBox="0 0 1420 330" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arr3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#fbbf24"/></marker>
+        </defs>
+        <!-- 网格与刻度 y：1.5@280 2.0@247 2.5@214 3.0@181 3.5@148 4.0@115 4.5@82 5.0@49 -->
+        <g stroke="rgba(154,216,207,.16)" stroke-width="1">
+          <line x1="90" y1="280" x2="1360" y2="280"/>
+          <line x1="90" y1="247" x2="1360" y2="247"/>
+          <line x1="90" y1="214" x2="1360" y2="214"/>
+          <line x1="90" y1="181" x2="1360" y2="181"/>
+          <line x1="90" y1="148" x2="1360" y2="148"/>
+          <line x1="90" y1="115" x2="1360" y2="115"/>
+          <line x1="90" y1="82" x2="1360" y2="82"/>
+          <line x1="90" y1="49" x2="1360" y2="49"/>
+        </g>
+        <g fill="#9ad8cf" font-size="11.5" text-anchor="end">
+          <text x="82" y="284">1.5</text><text x="82" y="251">2.0</text><text x="82" y="218">2.5</text>
+          <text x="82" y="185">3.0</text><text x="82" y="152">3.5</text><text x="82" y="119">4.0</text>
+          <text x="82" y="86">4.5</text><text x="82" y="53">5.0</text>
+        </g>
+        <g fill="#9ad8cf" font-size="12" text-anchor="middle">
+          <text x="90" y="300">P1</text><text x="344" y="300">P2</text><text x="598" y="300">P3</text>
+          <text x="852" y="300">P4</text><text x="1106" y="300">P5</text><text x="1360" y="300">P6</text>
+        </g>
+        <!-- 影线 3.1/3.5/3.9/4.1/4.5/4.8 → y:174,148,122,108,82,62 -->
+        <polyline points="90,174 344,148 598,122 852,108 1106,82 1360,62" fill="none" stroke="#2dd4bf" stroke-width="3"/>
+        <g fill="#2dd4bf">
+          <circle cx="90" cy="174" r="4.5"/><circle cx="344" cy="148" r="4.5"/><circle cx="598" cy="122" r="4.5"/>
+          <circle cx="852" cy="108" r="4.5"/><circle cx="1106" cy="82" r="4.5"/><circle cx="1360" cy="62" r="4.5"/>
+        </g>
+        <!-- 剧线 2.8/3.0/3.3/3.2/3.9/4.2 → y:194,181,161,168,122,102 -->
+        <polyline points="90,194 344,181 598,161 852,168 1106,122 1360,102" fill="none" stroke="#67e8f9" stroke-width="2.6"/>
+        <g fill="#67e8f9">
+          <circle cx="90" cy="194" r="4"/><circle cx="344" cy="181" r="4"/><circle cx="598" cy="161" r="4"/>
+          <circle cx="852" cy="168" r="4"/><circle cx="1106" cy="122" r="4"/><circle cx="1360" cy="102" r="4"/>
+        </g>
+        <!-- 综线 2.1/2.2/2.4/2.2/3.0/3.4 → y:240,234,221,234,181,155 -->
+        <polyline points="90,240 344,234 598,221 852,234 1106,181 1360,155" fill="none" stroke="#34d399" stroke-width="2.6"/>
+        <g fill="#34d399">
+          <circle cx="90" cy="240" r="4"/><circle cx="344" cy="234" r="4"/><circle cx="598" cy="221" r="4"/>
+          <circle cx="852" cy="234" r="4"/><circle cx="1106" cy="181" r="4"/><circle cx="1360" cy="155" r="4"/>
+        </g>
+        <!-- 少儿线 1.6/1.8/2.0/2.0/2.4/2.7 → y:273,260,247,247,221,201 -->
+        <polyline points="90,273 344,260 598,247 852,247 1106,221 1360,201" fill="none" stroke="#fbbf24" stroke-width="2.6"/>
+        <g fill="#fbbf24">
+          <circle cx="90" cy="273" r="4"/><circle cx="344" cy="260" r="4"/><circle cx="598" cy="247" r="4"/>
+          <circle cx="852" cy="247" r="4"/><circle cx="1106" cy="221" r="4"/><circle cx="1360" cy="201" r="4"/>
+        </g>
+        <!-- 末端标注 -->
+        <g font-size="12.5" font-weight="700">
+          <text x="1372" y="66" fill="#2dd4bf">影 4.8</text>
+          <text x="1372" y="106" fill="#67e8f9">剧 4.2</text>
+          <text x="1372" y="159" fill="#34d399">综 3.4</text>
+          <text x="1372" y="205" fill="#fbbf24">少儿 2.7</text>
+        </g>
+        <!-- 关键转折标注 -->
+        <g stroke="#fde68a" stroke-width="1" stroke-dasharray="4 3" opacity=".55">
+          <line x1="852" y1="49" x2="852" y2="280"/>
+        </g>
+        <g fill="#fde68a" font-size="12">
+          <text x="860" y="40">P4 起影 / 剧资源位前置</text>
+        </g>
+        <text x="1235" y="32" fill="#fbbf24" font-size="15" font-weight="800" text-anchor="middle">+6.4%</text>
+        <text x="1235" y="47" fill="#9ad8cf" font-size="11.5" text-anchor="middle">整体转化率 P1→P6</text>
+      </svg>
+      <div class="take"><b>读法：</b>P4 起将影 / 剧前置后，两垂类指数快速抬升（影 3.1→4.8、剧 2.8→4.2），综 / 少儿同步受益但斜率更低——资源向高转化垂类倾斜的边际收益最高。</div>
+    </div>
+  </div>
+
+  <!-- ===== 04 六期核心指标明细 ===== -->
+  <div class="sec">
+    <div class="sec-head"><span class="sec-no">04</span><span class="sec-title">P1-P6 六期核心指标明细</span><span class="sec-sub">每期 7 天 · 对照组（P1-P3）→ 实验组（P4-P6）</span></div>
+    <div class="panel">
+      <table class="tbl">
+        <colgroup><col style="width:9%"><col style="width:24%"><col style="width:14%"><col style="width:13%"><col style="width:11%"><col style="width:14%"><col style="width:15%"></colgroup>
+        <thead>
+          <tr><th>期次</th><th>核心动作</th><th>货架曝光</th><th>有效播放</th><th>播放率</th><th>付费订单</th><th>转化率</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="c">P1</td><td>原货架基线</td><td>159 万</td><td>85 万</td><td>53.5%</td><td>1.60 万单</td><td>1.88%</td></tr>
+          <tr><td class="c">P2</td><td>微调推荐位顺序</td><td>160 万</td><td>86 万</td><td>53.8%</td><td>1.62 万单</td><td>1.88%</td></tr>
+          <tr><td class="c">P3</td><td>低效内容下架试点</td><td>159 万</td><td>85 万</td><td>53.5%</td><td>1.59 万单</td><td>1.87%</td></tr>
+          <tr class="grp"><td class="c">P4</td><td>影 / 剧资源位前置</td><td>163 万</td><td>89 万</td><td>54.6%</td><td>1.76 万单</td><td>1.98%</td></tr>
+          <tr class="grp"><td class="c">P5</td><td>少儿专区上线</td><td>165 万</td><td>91 万</td><td>55.2%</td><td>1.82 万单</td><td>2.00%</td></tr>
+          <tr class="grp"><td class="c">P6</td><td>假期专题货架</td><td>166 万</td><td>91 万</td><td>54.8%</td><td>1.84 万单</td><td>2.02%</td></tr>
+        </tbody>
+      </table>
+      <div class="take"><b>读法：</b>对照组三组合计 478 万曝光 / 256 万播放 / 4.81 万单（转化 1.88%）；实验组三组合计 494 万曝光 / 271 万播放 / 5.42 万单（转化 2.00%）——P4 起策略切换后转化率逐期抬升，且曝光未放量。</div>
+    </div>
+  </div>
+
+  <!-- ===== 05 内容分层效果 ===== -->
+  <div class="sec">
+    <div class="sec-head"><span class="sec-no">05</span><span class="sec-title">内容分层效果</span><span class="sec-sub">按内容指数分为高效 / 中效 / 低效三层 · 优化前后对比</span></div>
+    <div class="panel">
+      <svg width="1420" height="300" viewBox="0 0 1420 300" xmlns="http://www.w3.org/2000/svg">
+        <g stroke="rgba(154,216,207,.16)" stroke-width="1">
+          <line x1="90" y1="270" x2="1360" y2="270"/>
+          <line x1="90" y1="226" x2="1360" y2="226"/>
+          <line x1="90" y1="182" x2="1360" y2="182"/>
+          <line x1="90" y1="138" x2="1360" y2="138"/>
+          <line x1="90" y1="94" x2="1360" y2="94"/>
+          <line x1="90" y1="50" x2="1360" y2="50"/>
+        </g>
+        <g fill="#9ad8cf" font-size="11.5" text-anchor="end">
+          <text x="82" y="274">0</text><text x="82" y="230">20</text><text x="82" y="186">40</text>
+          <text x="82" y="142">60</text><text x="82" y="98">80</text><text x="82" y="54">100</text>
+        </g>
+        <g font-size="12" fill="#9ad8cf">
+          <text x="280" y="44" text-anchor="middle">高效内容</text>
+          <text x="710" y="44" text-anchor="middle">中效内容</text>
+          <text x="1140" y="44" text-anchor="middle">低效内容</text>
+        </g>
+        <!-- 柱：前(灰) 后(青/绿/金)，1指数=2.2px：72→158.4/91→200.2；48→105.6/67→147.4；23→50.6/35→77 -->
+        <g>
+          <rect x="170" y="111.6" width="110" height="158.4" rx="4" fill="#64748b"/>
+          <rect x="350" y="69.8" width="110" height="200.2" rx="4" fill="rgba(45,212,191,.85)"/>
+          <rect x="600" y="164.4" width="110" height="105.6" rx="4" fill="#64748b"/>
+          <rect x="780" y="122.6" width="110" height="147.4" rx="4" fill="rgba(103,232,249,.8)"/>
+          <rect x="1030" y="219.4" width="110" height="50.6" rx="4" fill="#64748b"/>
+          <rect x="1210" y="193" width="110" height="77" rx="4" fill="rgba(251,191,36,.8)"/>
+        </g>
+        <g font-size="16" font-weight="800" fill="#fff">
+          <text x="225" y="103" text-anchor="middle">72</text><text x="405" y="61" text-anchor="middle">91</text>
+          <text x="655" y="156" text-anchor="middle">48</text><text x="835" y="114" text-anchor="middle">67</text>
+          <text x="1085" y="211" text-anchor="middle">23</text><text x="1265" y="185" text-anchor="middle">35</text>
+        </g>
+        <g font-size="12.5" fill="#fde68a">
+          <text x="225" y="288" text-anchor="middle">优化前</text><text x="405" y="288" text-anchor="middle">优化后 +26.4%</text>
+          <text x="655" y="288" text-anchor="middle">优化前</text><text x="835" y="288" text-anchor="middle">优化后 +39.6%</text>
+          <text x="1085" y="288" text-anchor="middle">优化前</text><text x="1265" y="288" text-anchor="middle">优化后 +52.2%</text>
+        </g>
+      </svg>
+      <div class="take"><b>读法：</b>三层指数同步抬升，分层策略把更多内容推入高效层（72→91）；但低效层绝对值仍最低（35）——低效内容对整体转化贡献有限，应下架 / 换新而非继续占位。</div>
+    </div>
+  </div>
+
+  <!-- ===== 06 平峰 vs 假期 ===== -->
+  <div class="sec">
+    <div class="sec-head"><span class="sec-no">06</span><span class="sec-title">平峰 vs 假期流量窗口</span><span class="sec-sub">日均口径 · 平峰月 30 天 / 假期周 7 天</span></div>
+    <div class="panel">
+      <svg width="1420" height="300" viewBox="0 0 1420 300" xmlns="http://www.w3.org/2000/svg">
+        <g stroke="rgba(154,216,207,.16)" stroke-width="1">
+          <line x1="90" y1="270" x2="1360" y2="270"/>
+          <line x1="90" y1="220" x2="1360" y2="220"/>
+          <line x1="90" y1="170" x2="1360" y2="170"/>
+          <line x1="90" y1="120" x2="1360" y2="120"/>
+          <line x1="90" y1="70" x2="1360" y2="70"/>
+        </g>
+        <g fill="#9ad8cf" font-size="11.5" text-anchor="end">
+          <text x="82" y="274">0</text><text x="82" y="224">10</text><text x="82" y="174">20</text>
+          <text x="82" y="124">30</text><text x="82" y="74">40</text>
+        </g>
+        <g font-size="13" fill="#9ad8cf">
+          <text x="340" y="44" text-anchor="middle">货架曝光（万人次 / 日）</text>
+          <text x="1030" y="44" text-anchor="middle">有效播放（万次 / 日）</text>
+        </g>
+        <g font-size="12" fill="#9ad8cf">
+          <text x="245" y="66" text-anchor="middle">平峰</text><text x="430" y="66" text-anchor="middle">假期</text>
+          <text x="935" y="66" text-anchor="middle">平峰</text><text x="1120" y="66" text-anchor="middle">假期</text>
+        </g>
+        <!-- 柱 1万=5px：曝光22.8→114/31.2→156；播放12.3→61.5/18.7→93.5 -->
+        <g>
+          <rect x="150" y="156" width="90" height="114" rx="4" fill="#64748b"/>
+          <rect x="380" y="114" width="90" height="156" rx="4" fill="rgba(45,212,191,.85)"/>
+          <rect x="840" y="208.5" width="90" height="61.5" rx="4" fill="#64748b"/>
+          <rect x="1070" y="176.5" width="90" height="93.5" rx="4" fill="rgba(103,232,249,.8)"/>
+        </g>
+        <g font-size="15" font-weight="800" fill="#fff">
+          <text x="195" y="147" text-anchor="middle">22.8</text><text x="425" y="101" text-anchor="middle">31.2</text>
+          <text x="885" y="199" text-anchor="middle">12.3</text><text x="1115" y="163" text-anchor="middle">18.7</text>
+        </g>
+        <g font-size="12.5" fill="#fde68a">
+          <text x="425" y="300" text-anchor="middle">日均 +37%</text>
+          <text x="1115" y="300" text-anchor="middle">日均 +52%</text>
+        </g>
+        <g font-size="13" fill="#eafff9">
+          <text x="620" y="130" text-anchor="middle">开机率 33% → 40%（假期居家）</text>
+          <text x="620" y="152" text-anchor="middle">有效播放率 54.0% → 60.0%</text>
+        </g>
+      </svg>
+      <div class="take"><b>读法：</b>假期开机率 +7pp 带来确定性放量（曝光日均 +37%），且假期点播意愿更强（播放率 +6.0pp）——假期是「少花钱多转化」的高杠杆窗口，应把高转化垂类内容与会员权益集中投放。</div>
+    </div>
+  </div>
+
+  <!-- ===== 页脚 ===== -->
+  <div class="foot">
+    <span>大屏点播货架资源位对照测试与付费转化提升 · 2026.10</span>
+    
+  </div>
+</div>
+<script>
+  (function(){try{var s=function(){var vw=Math.min(1,window.innerWidth/1600);document.body.style.zoom=vw;};s();window.addEventListener("resize",s);}catch(e){}})();
+</script>
+</body>
+</html>

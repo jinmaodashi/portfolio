@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>大屏AI语音智能体上线监测驾驶舱（4周·交互版）</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230a2138'/%3E%3Cpath d='M6 23 L13 13 L18 17 L26 8' stroke='%2338bdf8' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { overflow-x:hidden; }
+  body {
+    width:1600px;
+    font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+    color:#e5f1ff;
+    background:radial-gradient(1200px 700px at 20% -10%, #0e3a63 0%, rgba(14,58,99,0) 55%),
+               radial-gradient(1000px 600px at 100% 110%, #0d2f52 0%, rgba(13,47,82,0) 50%),
+               linear-gradient(150deg,#071527 0%,#0a2138 55%,#081d33 100%);
+    min-height:100vh;
+  }
+  .wrap { width:1600px; min-height:900px; padding:12px 24px 10px; display:flex; flex-direction:column; }
+
+  /* ===== 标题栏 ===== */
+  .head { display:flex; align-items:flex-start; justify-content:space-between; padding-bottom:6px; border-bottom:1px solid rgba(56,189,248,.22); }
+  .head-left .kicker { font-size:13px; letter-spacing:3px; color:#38bdf8; margin-bottom:3px; }
+  .head-left h1 { font-size:24px; font-weight:700; letter-spacing:1px; }
+  .head-left .sub { font-size:12.5px; color:#9fc3e8; margin-top:4px; }
+  .head-left .sub b { color:#7dd3fc; font-weight:600; }
+
+  .head-right { text-align:right; font-size:12px; color:#8fb3d9; line-height:1.9; }
+  .head-right .tag { display:inline-block; background:rgba(56,189,248,.14); border:1px solid rgba(56,189,248,.4); color:#7dd3fc; border-radius:14px; padding:0px 10px; font-size:11.5px; margin-left:5px; }
+
+  /* ===== 视图切换 ===== */
+  .viewbar { display:flex; align-items:flex-start; gap:10px; margin-top:7px; }
+  .seg { display:flex; background:rgba(8,30,52,.9); border:1px solid rgba(56,189,248,.3); border-radius:8px; overflow:hidden; flex-shrink:0; margin-top:1px; }
+  .seg button { border:none; background:transparent; color:#8fb3d9; font-size:13.5px; font-weight:600; padding:5px 20px; cursor:pointer; letter-spacing:1px; }
+  .seg button.active { background:linear-gradient(160deg,#0ea5e9,#0284c7); color:#fff; }
+  .dategrp { display:none; gap:3px; align-items:center; overflow-x:auto; min-width:0; padding:2px 0; scrollbar-width:thin; scrollbar-color:rgba(56,189,248,.45) rgba(8,30,52,.4); }
+  .dategrp.show { display:flex; }
+  .dategrp .dlab { font-size:11.5px; color:#8fb3d9; margin-right:3px; flex-shrink:0; }
+  .dategrp button { border:1px solid rgba(56,189,248,.35); background:rgba(8,30,52,.9); color:#9fc3e8; font-size:11px; font-weight:600; padding:2px 6px; border-radius:5px; cursor:pointer; flex-shrink:0; white-space:nowrap; }
+  .dategrp button:hover { border-color:rgba(56,189,248,.8); }
+  .dategrp button.active { background:linear-gradient(160deg,#f59e0b,#d97706); border-color:#fbbf24; color:#fff; }
+  .viewbar .hint { font-size:11px; color:#6d95bd; margin-left:auto; flex-shrink:0; margin-top:3px; }
+  .viewbar .hint b { color:#fbbf24; }
+
+  /* ===== 总关键结论 ===== */
+  .hero { display:flex; align-items:stretch; gap:14px; margin-top:7px; background:linear-gradient(90deg, rgba(251,191,36,.16), rgba(251,146,60,.06) 55%, rgba(251,191,36,.1)); border:1px solid rgba(251,191,36,.5); border-radius:10px; padding:5px 16px; }
+  .hero-tag { flex-shrink:0; display:flex; align-items:center; font-size:14px; font-weight:700; color:#fcd34d; letter-spacing:2px; border-right:1px dashed rgba(251,191,36,.45); padding-right:14px; }
+  .hero-body { flex:1; min-width:0; }
+  .hero-main { font-size:15px; color:#fef3c7; font-weight:600; line-height:1.4; }
+  .hero-main .big { font-size:20px; font-weight:800; }
+  .hero-main .hl-red { color:#fca5a5; }
+  .hero-main .hl { color:#fbbf24; }
+  .hero-sub { font-size:13px; color:#fde68a; margin-top:1px; }
+  .hero-sub b { color:#fbbf24; }
+
+  /* ===== KPI ===== */
+  .kpi-row { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:7px; }
+  .kpi { background:linear-gradient(160deg,rgba(19,52,86,.85),rgba(12,38,66,.85)); border:1px solid rgba(56,189,248,.2); border-radius:10px; padding:4px 14px; cursor:default; transition:border-color .15s; }
+  .kpi:hover { border-color:rgba(56,189,248,.55); }
+  .kpi .num { font-size:24px; font-weight:700; color:#fff; }
+  .kpi .num small { font-size:13px; color:#7dd3fc; margin-left:4px; }
+  .kpi .lab { font-size:12.5px; color:#9fc3e8; margin-top:0; }
+  .kpi .note { font-size:11px; color:#6d95bd; margin-top:1px; border-top:1px dashed rgba(125,211,252,.25); padding-top:1px; }
+
+  /* ===== 数据支撑 ===== */
+  .concl { display:flex; gap:10px; margin-top:7px; }
+  .concl-tag { flex-shrink:0; background:linear-gradient(160deg,rgba(56,189,248,.16),rgba(56,189,248,.06)); border:1px solid rgba(56,189,248,.4); border-radius:8px; padding:4px 11px; display:flex; align-items:center; font-size:12.5px; font-weight:700; color:#7dd3fc; letter-spacing:1px; }
+  .concl-items { flex:1; display:flex; gap:10px; min-width:0; }
+  .concl-item { flex:1; background:linear-gradient(160deg,rgba(19,52,86,.8),rgba(12,38,66,.8)); border:1px solid rgba(56,189,248,.22); border-radius:8px; padding:3px 11px; }
+  .concl-item .n { font-size:13px; font-weight:700; color:#7dd3fc; }
+  .concl-item .d { font-size:11px; color:#9fc3e8; margin-top:1px; line-height:1.35; }
+  .concl-item.warn { border-color:rgba(248,113,113,.45); }
+  .concl-item.warn .n { color:#fca5a5; }
+  .concl-item.green { border-color:rgba(52,211,153,.4); }
+  .concl-item.green .n { color:#6ee7b7; }
+
+  /* ===== 主区 ===== */
+  .main { flex:1; display:grid; grid-template-columns:1.2fr 1fr; grid-template-rows:1fr 1fr 0.74fr; gap:11px; margin-top:8px; min-height:0; }
+  .card { background:linear-gradient(165deg,rgba(16,46,78,.8),rgba(10,32,56,.85)); border:1px solid rgba(56,189,248,.18); border-radius:10px; padding:6px 15px; display:flex; flex-direction:column; min-height:0; }
+  .card .c-title { font-size:14px; font-weight:700; color:#cfe9ff; display:flex; align-items:center; gap:8px; margin-bottom:3px; }
+  .card .c-title::before { content:""; width:4px; height:14px; border-radius:2px; background:#38bdf8; }
+  .card .c-sub { font-size:11.5px; color:#8fb3d9; margin-left:auto; font-weight:400; }
+
+  .cfunnel { grid-column:1; grid-row:1/3; }
+  .clayer { grid-column:2; grid-row:1; }
+  .cdonut { grid-column:2; grid-row:2; }
+  .cline  { grid-column:1/3; grid-row:3; }
+
+  .funnel-box { flex:1; display:flex; align-items:center; justify-content:center; min-height:0; }
+  .funnel-box svg { width:390px; height:340px; flex-shrink:0; }
+
+  .bars { flex:1; display:flex; flex-direction:column; justify-content:center; gap:4px; padding:0px 6px; min-height:0; }
+  .bar-row { display:flex; align-items:center; gap:9px; }
+  .bar-row .b-lab { width:112px; font-size:13px; color:#cfe9ff; text-align:right; flex-shrink:0; }
+  .bar-track { flex:1; background:rgba(125,211,252,.08); border-radius:4px; height:13px; position:relative; }
+  .bar-fill { height:100%; border-radius:4px; transition:width .25s; }
+  .bar-row .b-val { width:52px; font-size:13px; font-weight:700; color:#7dd3fc; flex-shrink:0; }
+  .bar-row.warn .b-lab { color:#fca5a5; }
+  .bar-row.warn .bar-fill { background:linear-gradient(90deg,#f87171,#fb923c); }
+  .bar-row.warn .b-val { color:#fca5a5; }
+  .insight { font-size:11px; color:#fca5a5; background:rgba(248,113,113,.1); border:1px solid rgba(248,113,113,.3); border-radius:6px; padding:3px 9px; margin-top:0; }
+
+  .donut-box { flex:1; display:flex; align-items:center; justify-content:center; gap:16px; min-height:0; }
+  .donut-box svg { width:118px; height:118px; flex-shrink:0; }
+  .dlegend { display:flex; flex-direction:column; gap:5px; font-size:13px; color:#cfe9ff; }
+  .dlegend .row { display:flex; align-items:center; gap:7px; }
+  .dlegend .row b { margin-left:auto; color:#7dd3fc; }
+
+  .line-box { flex:1; display:flex; align-items:center; justify-content:center; min-height:0; }
+  .line-box svg { width:1000px; height:96px; flex-shrink:0; }
+
+  .foot { display:flex; justify-content:space-between; align-items:center; margin-top:6px; font-size:11.5px; color:#6d95bd; }
+  .foot .demo { color:#fbbf24; }
+</style>
+</head>
+<body>
+<div class="wrap" id="wrapMain">
+
+  <!-- 标题栏 -->
+  <div class="head">
+    <div class="head-left">
+      <div class="kicker">大屏智能体 · 月度监测</div>
+      <h1>大屏AI语音智能体上线监测驾驶舱</h1>
+      <div class="sub" id="headSub">近4周监测（09.15-10.12）：<b>蓝牙→语音仅 1.2%</b> 为全链路核心转化洼地；9/23 扩容后语音日活中枢 <b>+6.6%</b>、周末峰值 943 户 —— 迭代优先级：<b>语音体验优化 ＞ 功能扩容</b></div>
+    </div>
+    <div class="head-right">
+      <div>监测周期：2026.09.15-10.12（近4周）· 大屏端 OTT</div>
+      <div>覆盖范围：发布升级用户 200,957 户</div>
+    </div>
+  </div>
+
+  <!-- 视图切换 -->
+  <div class="viewbar">
+    <div class="seg">
+      <button id="btnDaily" onclick="setMode('daily')">每日视图</button>
+      <button id="btnMonth" class="active" onclick="setMode('month')">月度视图（近4周）</button>
+    </div>
+    <div class="dategrp" id="dateGrp"></div>
+    <div class="hint" id="viewHint">点击日期 · 数据联动刷新（可横向滚动）</div>
+  </div>
+
+  <!-- 总关键结论 -->
+  <div class="hero">
+    <div class="hero-tag">总关键结论</div>
+    <div class="hero-body" id="heroBody"></div>
+  </div>
+
+  <!-- KPI -->
+  <div class="kpi-row" id="kpiRow"></div>
+
+  <!-- 数据支撑 -->
+  <div class="concl">
+    <div class="concl-tag">数据支撑</div>
+    <div class="concl-items" id="conclItems"></div>
+  </div>
+
+  <!-- 主区 -->
+  <div class="main">
+    <div class="card cfunnel">
+      <div class="c-title" id="funnelTitle">转化漏斗<span class="c-sub" id="funnelSub">近4周日均 · 全部占比以发布升级用户为基数</span></div>
+      <div class="funnel-box" id="funnelBox"></div>
+    </div>
+    <div class="card clayer">
+      <div class="c-title">分层环节转化率<span class="c-sub" id="layerSub">近4周日均</span></div>
+      <div class="bars" id="barsBox"></div>
+    </div>
+    <div class="card cdonut">
+      <div class="c-title">语音五大类指令结构<span class="c-sub" id="donutSub">近4周日均 09.15-10.12</span></div>
+      <div class="donut-box" id="donutBox"></div>
+    </div>
+    <div class="card cline">
+      <div class="c-title" id="lineTitle">28日语音日活趋势（09.15-10.12）<span class="c-sub">单位：户 · 大屏端语音交互</span></div>
+      <div class="line-box" id="lineBox"></div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <div>作品：大屏AI语音智能体上线监测驾驶舱（4周·交互版）· 大屏端（OTT）语音交互场景</div>
+    
+  </div>
+
+</div>
+
+<script>
+/* ================= 数据 ================= */
+var BASE = 200957;
+
+/* 每日真实数据（10/9-10/12 日报） */
+var DAILY = {
+  "1009": { label:"10/9 周五",  on:87727, onR:43.7, up:85747, upR:97.7, bt:68902, btR:80.4, vo:790,  voR:1.1, inter:2481,
+            kpi:[["覆盖升级用户","20.1","万","发布升级口径 200,957 户"],["语音日活","790","户","环比 +6.9%"],["语音交互","2,481","次","换台占47.3%"],["蓝牙→语音","1.1","%","蓝牙已连接用户中发起语音交互占比，业务核心转化洼地"]],
+            funnel:[100,43.7,42.7,34.3,0.39], layers:[43.7,97.7,80.4,1.1], donut:[47.3,17.9,29.9,4.6,0.3],
+            hero:"蓝牙→语音仅 1.1% 为全链路核心转化洼地，当日换台(47.3%)主导 · 语音日活 790 户",
+            heroSub:"当日口径 · 语音交互 2,481 次 · 迭代优先级：<b>语音体验优化 ＞ 功能扩容</b>",
+            concl:[["蓝牙→语音仅 1.1%","当日口径 · 全链路最大流失环节","warn"],["语音交互 2,481 次","换台(47.3%)+搜索(29.9%) 合计77.2%",""],["语音日活 790 户","环比 +6.9% · 全链路转化保持平稳","green"]] },
+  "1010": { label:"10/10 周六", on:88493, onR:44.0, up:86452, upR:97.7, bt:69418, btR:80.3, vo:869,  voR:1.3, inter:3224,
+            kpi:[["覆盖升级用户","20.1","万","发布升级口径 200,957 户"],["语音日活","869","户","环比 +10.0%"],["语音交互","3,224","次","聊天占比升至34.6%"],["蓝牙→语音","1.3","%","蓝牙已连接用户中发起语音交互占比，业务核心转化洼地"]],
+            funnel:[100,44.0,43.0,34.5,0.43], layers:[44.0,97.7,80.3,1.3], donut:[35.8,34.6,23.5,5.4,0.7],
+            hero:"蓝牙→语音仅 1.3% 为全链路核心转化洼地，当日聊天占比 34.6%（+16.7pp）跃升",
+            heroSub:"当日口径 · 语音日活 869 户 · 交互 3,224 次 · 迭代优先级：<b>语音体验优化 ＞ 功能扩容</b>",
+            concl:[["蓝牙→语音仅 1.3%","当日口径 · 4日内最高但仍为最大流失","warn"],["语音交互 3,224 次","环比 +29.9% · 交互明显放量",""],["聊天占比 34.6%","较前日 +16.7pp · 闲聊与角色扮演主导","green"]] },
+  "1011": { label:"10/11 周日", on:89684, onR:44.6, up:87588, upR:97.7, bt:70171, btR:80.1, vo:943,  voR:1.3, inter:4491,
+            kpi:[["覆盖升级用户","20.1","万","发布升级口径 200,957 户"],["语音日活","943","户","4周峰值 · 环比+8.5%"],["语音交互","4,491","次","4日峰值 · 环比+39.3%"],["蓝牙→语音","1.3","%","蓝牙已连接用户中发起语音交互占比，业务核心转化洼地"]],
+            funnel:[100,44.6,43.6,34.9,0.47], layers:[44.6,97.7,80.1,1.3], donut:[26.5,44.0,26.8,2.2,0.4],
+            hero:"蓝牙→语音仅 1.3% 为全链路核心转化洼地，语音日活 943 户创4周峰值",
+            heroSub:"周末活跃脉冲 · 交互 4,491 次 · 聊天占 44.0% 居首 · 迭代优先级：<b>语音体验优化 ＞ 功能扩容</b>",
+            concl:[["蓝牙→语音仅 1.3%","当日口径 · 全链路最大流失环节","warn"],["语音日活 943 户 创4周峰值","周末活跃脉冲 · 环比 +8.5%","green"],["语音交互 4,491 次","4日峰值 · 环比 +39.3% · 聊天占44.0%",""]] },
+  "1012": { label:"10/12 周一", on:85859, onR:42.7, up:84017, upR:97.9, bt:67384, btR:80.2, vo:802,  voR:1.2, inter:2672,
+            kpi:[["覆盖升级用户","20.1","万","发布升级口径 200,957 户"],["语音日活","802","户","环比 -15.0%"],["语音交互","2,672","次","换台占比回升至38.7%"],["蓝牙→语音","1.2","%","蓝牙已连接用户中发起语音交互占比，业务核心转化洼地"]],
+            funnel:[100,42.7,41.8,33.5,0.40], layers:[42.7,97.9,80.2,1.2], donut:[38.7,30.2,26.5,4.3,0.3],
+            hero:"蓝牙→语音仅 1.2% 为全链路核心转化洼地，周一开机回落至 42.7%",
+            heroSub:"当日口径 · 换台占比 38.7% 重回第1 · 迭代优先级：<b>语音体验优化 ＞ 功能扩容</b>",
+            concl:[["蓝牙→语音仅 1.2%","当日口径 · 全链路最大流失环节","warn"],["开机率 42.7%","环比 -1.9pp · 周一自然回落",""],["换台占比 38.7%","重回第1 · 北京卫视116次居首","green"]] }
+};
+var REAL_IDX = {24:"1009",25:"1010",26:"1011",27:"1012"};
+
+/* 月度数据（近4周：9/15-10/12） */
+var MONTH = {
+  kpi:[["覆盖升级用户","20.1","万","发布升级口径 200,957 户"],["语音日活峰值","943","户","10/11 周日 · 4周最高"],["近4周语音日均","845","户","28天监测 · 日均845户"],["蓝牙→语音","1.2","%","蓝牙已连接用户中发起语音交互占比，业务核心转化洼地"]],
+  funnel:[100,43.8,42.8,34.3,0.42], layers:[43.8,97.7,80.2,1.2], donut:[37.1,31.7,26.7,4.1,0.4], voR:1.2, vo:845,
+  hero:"99.6% 用户止步于「蓝牙→语音」之前（环节转化率仅 1.2%）——语音交互体验为转化核心洼地",
+  heroSub:"迭代优先级：<b>语音体验优化</b>（蓝牙连接引导 / 首轮识别容错）＞ 功能扩容；同步聚焦<b>低频用户激活</b>（9月低频占64.7%）",
+  concl:[["蓝牙→语音仅 1.2%","近4周日均 · 全链路最大流失环节","warn"],["扩容后日活中枢 +6.6%","807→860 户 · 9/23 全量扩容直接拉动语音触达",""],["10/11 日活 943 户 创4周峰值","周末活跃脉冲 · 晚间18-21点占42.4%","green"]]
+};
+
+/* 28日趋势：9/15-10/12 语音日活（户） */
+var TREND = { dates:["9/15","9/16","9/17","9/18","9/19","9/20","9/21","9/22","9/23","9/24","9/25","9/26","9/27","9/28","9/29","9/30","10/1","10/2","10/3","10/4","10/5","10/6","10/7","10/8","10/9","10/10","10/11","10/12"],
+              vals:[755,780,790,835,890,895,750,760,855,880,925,935,935,840,805,815,870,895,915,900,890,765,775,800,790,869,943,802],
+              real:{idx:24}, expandIdx:8, peakIdx:26 };
+
+/* 24天辅助数据：交互次数 / 开机率 / 五大类占比 */
+var EXT = {
+  inter:[2567,2574,2686,3006,3738,4117,2400,2508,2993,3168,3608,4114,4208,2772,2737,2853,3219,3401,3935,3960,3115,2525,2635,2800],
+  onR:  [43.6,43.8,43.5,43.9,44.2,44.1,43.4,43.7,44.3,44.5,44.4,44.8,44.6,43.5,43.8,44.0,44.2,44.5,44.7,44.6,44.1,43.5,43.6,43.9],
+  donut:[[38.5,30.5,26.8,3.8,0.4],[36.9,32.1,26.5,4.1,0.4],[37.8,31.2,26.6,4.0,0.4],[35.5,33.0,26.9,4.2,0.4],
+         [33.8,34.2,27.1,4.5,0.4],[34.5,33.6,26.9,4.6,0.4],[39.2,29.8,26.4,4.2,0.4],[37.4,31.6,26.6,4.0,0.4],
+         [36.2,32.4,26.9,4.1,0.4],[35.0,33.5,27.0,4.1,0.4],[33.2,34.8,27.2,4.4,0.4],[32.5,35.4,27.3,4.4,0.4],
+         [33.0,35.0,27.2,4.4,0.4],[38.8,30.2,26.5,4.1,0.4],[37.9,31.3,26.4,4.0,0.4],[37.0,32.2,26.4,4.0,0.4],
+         [36.0,33.1,26.5,4.0,0.4],[34.8,34.0,26.8,4.0,0.4],[33.5,34.9,27.0,4.2,0.4],[34.2,34.4,26.9,4.1,0.4],
+         [35.8,33.0,26.7,4.1,0.4],[38.6,30.6,26.4,4.0,0.4],[37.7,31.5,26.4,4.0,0.4],[36.8,32.3,26.5,4.0,0.4]]
+};
+var UP_R = 97.7, BT_R = 80.2;
+
+/* 指令结构颜色 */
+var DONUT_COLORS = ["#38bdf8","#22d3ee","#818cf8","#fbbf24","#94a3b8"];
+var DONUT_NAMES = ["换台","聊天","搜索","控制","帮助"];
+
+/* ================= 状态 ================= */
+var mode = "month";
+var curIdx = 26; /* 每日默认 10/11（真实峰值日） */
+
+/* ================= 数据访问 ================= */
+function fmt(n){ return n.toLocaleString("zh-CN"); }
+
+/* 每日数据：4天固定口径取 DAILY，其余按规则生成（funnel/layers 由开机率与日活推导，可复核） */
+function getDaily(idx){
+  if(REAL_IDX[idx]) return DAILY[REAL_IDX[idx]];
+  var vo = TREND.vals[idx];
+  var onR = EXT.onR[idx];
+  var btUsers = BASE*onR/100*UP_R/100*BT_R/100;
+  var voR = vo/btUsers*100;
+  var d = EXT.donut[idx];
+  var main = 0; for(var i=1;i<5;i++){ if(d[i]>d[main]) main=i; }
+  var pre = idx>0 ? TREND.vals[idx-1] : vo;
+  var diff = (vo-pre)/pre*100;
+  var ds = (diff>=0?"+":"")+diff.toFixed(1)+"%";
+  var note3;
+  if(idx===8){ note3 = "9/23 扩容首日 · 环比 "+ds; }
+  else if(idx>=16 && idx<=22){ note3 = "国庆假期 · 居家活跃 · 环比 "+ds; }
+  else if(idx%7===4 || idx%7===5){ note3 = "周末活跃脉冲 · 环比 "+ds; }
+  else { note3 = "工作日平稳 · 环比 "+ds; }
+  var topName = DONUT_NAMES[main], topPct = d[main].toFixed(1);
+  var isWeekend = (idx%7===4 || idx%7===5), isMonday = (idx%7===6), isHoliday = (idx>=16 && idx<=22);
+  var core = "蓝牙→语音仅 "+voR.toFixed(1)+"% 为全链路核心转化洼地";
+  var hero, heroSub;
+  if(idx===8){
+    hero = core+"，扩容首日语音日活 "+vo+" 户（环比 "+ds+"）";
+    heroSub = "触达基数 12.7万→20.1万 · 迭代优先级：<b>语音体验优化 ＞ 功能扩容</b>";
+  } else if(isHoliday){
+    hero = core+"，国庆假期居家活跃 · 语音日活 "+vo+" 户";
+    heroSub = "主类「"+topName+"」占 "+topPct+"% · 迭代优先级：<b>语音体验优化 ＞ 功能扩容</b>";
+  } else if(isWeekend){
+    hero = core+"，周末活跃脉冲 · 语音日活 "+vo+" 户（高于工作日中枢 819 户）";
+    heroSub = "主类「"+topName+"」占 "+topPct+"% · 迭代优先级：<b>语音体验优化 ＞ 功能扩容</b>";
+  } else if(isMonday){
+    hero = core+"，周一自然回落 · 语音日活 "+vo+" 户（环比 "+ds+"）";
+    heroSub = "主类「"+topName+"」占 "+topPct+"% · 迭代优先级：<b>语音体验优化 ＞ 功能扩容</b>";
+  } else if(diff>=8){
+    hero = core+"，工作日放量 · 语音日活 "+vo+" 户（环比 "+ds+"）";
+    heroSub = "主类「"+topName+"」占 "+topPct+"% · 迭代优先级：<b>语音体验优化 ＞ 功能扩容</b>";
+  } else if(diff<=-8){
+    hero = core+"，工作日回落 · 语音日活 "+vo+" 户（环比 "+ds+"）";
+    heroSub = "主类「"+topName+"」占 "+topPct+"% · 迭代优先级：<b>语音体验优化 ＞ 功能扩容</b>";
+  } else {
+    hero = core+"，全链路转化平稳 · 语音日活 "+vo+" 户";
+    heroSub = "主类「"+topName+"」占 "+topPct+"% · 迭代优先级：<b>语音体验优化 ＞ 功能扩容</b>";
+  }
+  var kpi = [["覆盖升级用户","20.1","万","发布升级口径 200,957 户"],["语音日活",""+vo,"户",note3],["语音交互",fmt(EXT.inter[idx]),"次","「"+topName+"」占"+topPct+"%居首"],["蓝牙→语音",voR.toFixed(1),"%","蓝牙已连接用户中发起语音交互占比，业务核心转化洼地"]];
+  var funnel = [100, onR, +(onR*UP_R/100).toFixed(1), +(onR*UP_R/100*BT_R/100).toFixed(1), +(vo/BASE*100).toFixed(2)];
+  var layers = [onR, UP_R, BT_R, +voR.toFixed(1)];
+  var concl = [["蓝牙→语音仅 "+voR.toFixed(1)+"%","当日口径 · 全链路最大流失环节","warn"],
+               ["语音交互 "+fmt(EXT.inter[idx])+" 次","「"+topName+"」占 "+topPct+"% 居当日第1",""],
+               ["语音日活 "+vo+" 户",note3,"green"]];
+  return { label:TREND.dates[idx], onR:onR, vo:vo, voR:voR, inter:EXT.inter[idx],
+           kpi:kpi, funnel:funnel, layers:layers, donut:d, hero:hero, heroSub:heroSub, concl:concl };
+}
+
+/* ================= 渲染 ================= */
+function cur(){ return (mode==="daily") ? getDaily(curIdx) : MONTH; }
+
+function renderHero(){
+  var d = cur();
+  var t = d.hero
+    .replace(/^(\d+\.\d+%)/, '<span class="big hl-red">$1</span>')
+    .replace(/环节转化率仅 (\d+\.\d+%)/, '环节转化率仅 <span class="big hl-red">$1</span>')
+    .replace(/仅 (\d+\.\d+%)/, '仅 <span class="big hl-red">$1</span>');
+  document.getElementById("heroBody").innerHTML =
+    '<div class="hero-main">'+t+'</div>'+
+    '<div class="hero-sub">'+d.heroSub+'</div>';
+}
+
+function renderKPI(){
+  var d = cur();
+  var h = "";
+  d.kpi.forEach(function(k){
+    h += '<div class="kpi"><div class="num">'+k[1]+'<small>'+k[2]+'</small></div><div class="lab">'+k[0]+'</div><div class="note">'+k[3]+'</div></div>';
+  });
+  document.getElementById("kpiRow").innerHTML = h;
+}
+
+function renderConcl(){
+  var d = cur();
+  var h = "";
+  d.concl.forEach(function(c){
+    h += '<div class="concl-item '+c[2]+'"><div class="n">'+c[0]+'</div><div class="d">'+c[1]+'</div></div>';
+  });
+  document.getElementById("conclItems").innerHTML = h;
+}
+
+/* 漏斗：5层梯形，宽度按占比开方映射 */
+function renderFunnel(){
+  var d = cur();
+  var p = d.funnel;
+  var cx = 310, maxW = 460, H = 88, gap = 10, y0 = 16;
+  var ws = p.map(function(v){ return Math.max(26, maxW * Math.sqrt(v/100)); });
+  var svg = '<svg viewBox="0 0 620 555" xmlns="http://www.w3.org/2000/svg"><defs>'+
+    '<linearGradient id="fg1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7dd3fc"/><stop offset="1" stop-color="#0ea5e9"/></linearGradient></defs>';
+  var names = ["发布升级用户","开机用户","已升级用户","蓝牙连接用户","语音交互"];
+  var fills = ["url(#fg1)","#38bdf8","#0ea5e9","#0284c7","#f87171"];
+  var tcol  = ["#052e4d","#04293f","#eaf6ff","#eaf6ff","#fff"];
+  for(var i=0;i<5;i++){
+    var yTop = y0 + i*(H+gap);
+    var yBot = yTop + H;
+    var wTop = ws[i], wBot = (i<4) ? ws[i+1] : ws[i]*0.85;
+    if(i===4){ wTop = ws[4]; wBot = ws[4]*0.85; }
+    var x1=cx-wTop/2, x2=cx+wTop/2, x3=cx+wBot/2, x4=cx-wBot/2;
+    svg += '<polygon points="'+x1+','+yTop+' '+x2+','+yTop+' '+x3+','+yBot+' '+x4+','+yBot+'" fill="'+fills[i]+'" opacity="0.94"/>';
+    svg += '<text x="'+cx+'" y="'+(yTop+Math.round(H/2)-4)+'" text-anchor="middle" fill="'+tcol[i]+'" font-size="16" font-weight="700">'+names[i]+'</text>';
+    var pct = p[i].toFixed(i===0?1: (p[i]>=10?1:2));
+    svg += '<text x="'+cx+'" y="'+(yTop+Math.round(H/2)+18)+'" text-anchor="middle" fill="'+tcol[i]+'" font-size="15" font-weight="700">'+pct+'%</text>';
+  }
+  svg += '</svg>';
+  document.getElementById("funnelBox").innerHTML = svg;
+  document.getElementById("funnelSub").textContent = (mode==="daily") ? (cur().label+" 当日 · 全部占比以发布升级用户为基数") : "近4周日均 · 全部占比以发布升级用户为基数";
+}
+
+/* 分层转化率条形 */
+function renderBars(){
+  var d = cur();
+  var L = d.layers;
+  var rows = [["发布 → 开机",L[0]],["开机 → 已升级",L[1]],["已升级 → 蓝牙",L[2]],["蓝牙 → 语音",L[3]]];
+  var h = "";
+  rows.forEach(function(r,i){
+    var w = Math.min(100, r[1]/0.977*100);
+    var warn = (i===3);
+    var color = warn ? "linear-gradient(90deg,#f87171,#fb923c)" : (i===0?"linear-gradient(90deg,#38bdf8,#22d3ee)":(i===1?"linear-gradient(90deg,#0ea5e9,#38bdf8)":"linear-gradient(90deg,#0284c7,#0ea5e9)"));
+    h += '<div class="bar-row'+(warn?" warn":"")+'"><div class="b-lab">'+r[0]+'</div>'+
+          '<div class="bar-track"><div class="bar-fill" style="width:'+w.toFixed(1)+'%;background:'+color+';"></div></div>'+
+          '<div class="b-val">'+r[1].toFixed(1)+'%</div></div>';
+  });
+  h += '<div class="insight">▍关键发现：蓝牙→语音仅 '+d.voR.toFixed(1)+'%，为全链路最大流失环节，语音交互体验为转化核心洼地</div>';
+  document.getElementById("barsBox").innerHTML = h;
+  document.getElementById("layerSub").textContent = (mode==="daily") ? (cur().label+" 当日") : "近4周日均";
+}
+
+/* 环形指令结构 */
+function renderDonut(){
+  var d = cur();
+  var vals = d.donut;
+  var C = 2*Math.PI*82, off = 0;
+  var svg = '<svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">'+
+    '<circle cx="120" cy="120" r="82" fill="none" stroke="rgba(125,211,252,.08)" stroke-width="26"/>';
+  vals.forEach(function(v,i){
+    var len = C*v/100;
+    svg += '<circle cx="120" cy="120" r="82" fill="none" stroke="'+DONUT_COLORS[i]+'" stroke-width="26" '+
+           'stroke-dasharray="'+len.toFixed(1)+' '+(C-len).toFixed(1)+'" stroke-dashoffset="'+(-off).toFixed(1)+'" transform="rotate(-90 120 120)"/>';
+    off += len;
+  });
+  svg += '<text x="120" y="112" text-anchor="middle" fill="#cfe9ff" font-size="15">语音指令</text>'+
+         '<text x="120" y="136" text-anchor="middle" fill="#7dd3fc" font-size="13">结构占比</text></svg>';
+  var legend = "";
+  DONUT_NAMES.forEach(function(n,i){
+    legend += '<div class="row"><span style="width:10px;height:10px;border-radius:2px;background:'+DONUT_COLORS[i]+';"></span>'+n+'<b>'+vals[i].toFixed(1)+'%</b></div>';
+  });
+  document.getElementById("donutBox").innerHTML = svg + '<div class="dlegend">'+legend+'</div>';
+  document.getElementById("donutSub").textContent = (mode==="daily") ? (cur().label+" 当日口径") : "近4周日均 09.15-10.12";
+}
+
+/* 折线：月度=28天全览；每日=28天+高亮当日 */
+function renderLine(){
+  var svg = '<svg viewBox="0 0 1000 150" xmlns="http://www.w3.org/2000/svg">';
+  var yGrid = [105.5,86.4,67.3,48.2,29.1,10];
+  var yLab = [650,750,850,950,1050,1150];
+  svg += '<g stroke="rgba(125,211,252,.12)" stroke-width="1">';
+  yGrid.forEach(function(y){ svg += '<line x1="46" y1="'+y+'" x2="996" y2="'+y+'"/>'; });
+  svg += '</g>';
+  svg += '<g fill="#6d95bd" font-size="10.5" text-anchor="end">';
+  yLab.forEach(function(v,i){ svg += '<text x="38" y="'+(yGrid[i]+3)+'">'+v+'</text>'; });
+  svg += '</g>';
+  /* 9/23 扩容线 */
+  svg += '<line x1="328.4" y1="8" x2="328.4" y2="112" stroke="rgba(251,191,36,.65)" stroke-width="1.5" stroke-dasharray="5 4"/>'+
+         '<text x="328.4" y="126" text-anchor="middle" fill="#fbbf24" font-size="11" font-weight="700">9/23 扩容</text>';
+  /* 折线 */
+  var pts = TREND.vals.map(function(v,i){
+    var x = 50 + i*34.8;
+    var y = 10 + (1150-v)/(1150-600)*105;
+    return x+","+y.toFixed(1);
+  });
+  svg += '<polyline points="'+pts.join(" ")+'" fill="none" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>';
+  /* 峰值点 */
+  var px = 50+TREND.peakIdx*34.8, py = 10+(1150-TREND.vals[TREND.peakIdx])/(1150-600)*105;
+  svg += '<circle cx="'+px+'" cy="'+py.toFixed(1)+'" r="5.5" fill="#f87171"/>'+
+         '<text x="'+px+'" y="'+(py-11).toFixed(1)+'" text-anchor="middle" fill="#f87171" font-size="12" font-weight="700">10/11 943</text>';
+  /* 每日模式：高亮当日 */
+  if(mode==="daily"){
+    var di = curIdx;
+    var dx = 50+di*34.8, dy = 10+(1150-TREND.vals[di])/(1150-600)*105;
+    svg += '<circle cx="'+dx+'" cy="'+dy.toFixed(1)+'" r="7" fill="none" stroke="#fbbf24" stroke-width="2.5"/>'+
+           '<text x="'+dx+'" y="'+(dy+18).toFixed(1)+'" text-anchor="middle" fill="#fbbf24" font-size="12" font-weight="700">'+TREND.dates[di]+' 当日</text>';
+  }
+  /* x轴周界 */
+  var marks = [[0,"9/15"],[7,"9/22"],[14,"9/29"],[21,"10/6"],[27,"10/12"]];
+  svg += '<g fill="#9fc3e8" font-size="11" text-anchor="middle">';
+  marks.forEach(function(m){ svg += '<text x="'+(50+m[0]*34.8).toFixed(1)+'" y="121">'+m[1]+'</text>'; });
+  svg += '</g>';
+  svg += '<text x="996" y="146" text-anchor="end" fill="#6d95bd" font-size="11.5">扩容后（9/23起）日活中枢 807→860 户（+6.6%）· 28天监测口径</text>';
+  svg += '</svg>';
+  document.getElementById("lineBox").innerHTML = svg;
+  document.getElementById("lineTitle").innerHTML = '28日语音日活趋势（09.15-10.12）<span class="c-sub">'+(mode==="daily"?"黄框=所选日期 · ":"")+'单位：户 · 大屏端语音交互</span>';
+}
+
+/* 头部副标题 */
+function renderHead(){
+  if(mode==="daily"){
+    var d = getDaily(curIdx);
+    document.getElementById("headSub").innerHTML =
+      "每日监测 · <b>"+d.label+"</b>：蓝牙→语音仅 <b>"+d.voR.toFixed(1)+"%</b> 为全链路核心转化洼地；语音日活 <b>"+d.vo+" 户</b> —— 迭代优先级：<b>语音体验优化 ＞ 功能扩容</b>";
+  } else {
+    document.getElementById("headSub").innerHTML =
+      "近4周监测（09.15-10.12）：<b>蓝牙→语音仅 1.2%</b> 为全链路核心转化洼地；9/23 扩容后语音日活中枢 <b>+6.6%</b>、周末峰值 943 户 —— 迭代优先级：<b>语音体验优化 ＞ 功能扩容</b>";
+  }
+}
+
+function renderAll(){
+  renderHead(); renderHero(); renderKPI(); renderConcl(); renderFunnel(); renderBars(); renderDonut(); renderLine();
+}
+
+/* ================= 交互 ================= */
+function setMode(m){
+  mode = m;
+  document.getElementById("btnDaily").className = (m==="daily")?"active":"";
+  document.getElementById("btnMonth").className = (m==="month")?"active":"";
+  document.getElementById("dateGrp").className = (m==="daily")?"dategrp show":"dategrp";
+  if(m==="daily"){ syncDateBtn(); }
+  renderAll();
+}
+function syncDateBtn(){
+  var btns = document.querySelectorAll("#dateGrp button");
+  btns.forEach(function(b){ b.className = (parseInt(b.getAttribute("data-i"))===curIdx) ? "active" : ""; });
+  var g = document.getElementById("dateGrp");
+  if(g && g.scrollTo){ var a = g.querySelector("button.active"); if(a){ a.scrollIntoView({block:"nearest",inline:"center"}); } }
+}
+function setDateIdx(i){
+  curIdx = i;
+  syncDateBtn();
+  renderAll();
+}
+function buildDateBtns(){
+  var h = '<span class="dlab">选择日期：</span>';
+  for(var i=0;i<28;i++){
+    h += '<button data-i="'+i+'" onclick="setDateIdx('+i+')">'+TREND.dates[i]+'</button>';
+  }
+  document.getElementById("dateGrp").innerHTML = h;
+}
+
+buildDateBtns();
+setMode("month");
+
+/* 窄屏自动缩放适配（大屏看板按 1600 设计稿等比缩小，宽屏原样显示） */
+function fitView(){
+  var vw = document.documentElement.clientWidth || 1600;
+  var s = Math.min(1, vw/1600);
+  var wrap = document.getElementById("wrapMain");
+  if("zoom" in document.body.style){
+    document.body.style.zoom = s;
+    wrap.style.transform = "none";
+  } else {
+    wrap.style.transform = "scale("+s+")";
+    wrap.style.transformOrigin = "top left";
+  }
+  document.body.style.minHeight = Math.round(900*s)+"px";
+}
+fitView();
+window.addEventListener("resize", fitView);
+</script>
+</body>
+</html>

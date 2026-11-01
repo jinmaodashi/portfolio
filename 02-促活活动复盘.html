@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>大屏智能体促活活动推送时点与人群定向优化</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231b1140'/%3E%3Ccircle cx='16' cy='16' r='9' fill='none' stroke='%23a78bfa' stroke-width='3.4'/%3E%3Cpath d='M16 7v18M16 16l9-9M16 16l-9 9' stroke='%23fbbf24' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+  html { overflow-x:hidden; }
+  body { margin:0; background:#0f0a24; width:1600px; font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif; color:#ece7ff; }
+  * { box-sizing:border-box; }
+
+  .wrap { width:1480px; margin:0 auto; padding:30px 0 26px; }
+
+  /* ===== 头部 ===== */
+  .top { display:flex; align-items:flex-start; justify-content:space-between; border-bottom:1px solid rgba(167,139,250,.28); padding-bottom:16px; }
+  .kicker { font-size:13px; letter-spacing:4px; color:#9d8fe0; font-weight:600; }
+  .h1 { font-size:31px; font-weight:800; margin:8px 0 6px; color:#f4efff; letter-spacing:.5px; }
+  .h1 b { color:#c084fc; }
+  .subline { font-size:14px; color:#b3a6e8; }
+  .tag { flex-shrink:0; font-size:12px; color:#d8cbfb; border:1px solid rgba(192,132,252,.55); background:rgba(192,132,252,.12); border-radius:20px; padding:4px 12px; letter-spacing:1px; }
+
+  /* ===== 核心结论 ===== */
+  .hero { margin-top:16px; background:linear-gradient(95deg, rgba(251,191,36,.15), rgba(192,132,252,.08) 60%, rgba(251,191,36,.10)); border:1px solid rgba(251,191,36,.5); border-radius:12px; padding:14px 20px; }
+  .hero-tag { display:inline-block; font-size:13px; font-weight:700; color:#fcd34d; letter-spacing:3px; border-right:1px dashed rgba(251,191,36,.4); padding-right:12px; margin-right:12px; }
+  .hero-main { font-size:15.5px; color:#fef3c7; font-weight:600; line-height:1.7; }
+  .hero-main .big { font-size:18px; font-weight:800; color:#fff; }
+  .hero-main .hl { color:#fbbf24; font-weight:800; font-size:17px; padding:1px 6px; border-radius:5px; background:rgba(251,191,36,.16); white-space:nowrap; }
+  .hero-sub { font-size:13px; color:#fde68a; margin-top:6px; line-height:1.6; }
+
+  /* ===== 模块 ===== */
+  .sec { margin-top:22px; }
+  .sec-head { display:flex; align-items:baseline; gap:12px; border-bottom:1px solid rgba(167,139,250,.22); padding-bottom:8px; }
+  .sec-no { font-size:15px; font-weight:800; color:#a78bfa; font-style:italic; }
+  .sec-title { font-size:20px; font-weight:800; color:#f4efff; }
+  .sec-sub { font-size:13px; color:#b3a6e8; margin-left:auto; }
+
+  .kpi-row { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-top:14px; }
+  .kpi { background:linear-gradient(160deg,#24164e,#1b1140); border:1px solid rgba(167,139,250,.28); border-radius:12px; padding:14px 18px; }
+  .kpi .lab { font-size:12.5px; color:#b3a6e8; letter-spacing:1px; }
+  .kpi .num { font-size:30px; font-weight:800; color:#fff; margin-top:6px; }
+  .kpi .num small { font-size:14px; color:#c4b5fd; font-weight:600; margin-left:4px; }
+  .kpi .note { font-size:11.5px; color:#9d8fe0; margin-top:4px; }
+
+  .panel { margin-top:14px; background:linear-gradient(160deg,#1d1342,#181033); border:1px solid rgba(167,139,250,.22); border-radius:12px; padding:16px 20px; }
+  .panel-h { font-size:14px; font-weight:700; color:#ded6ff; margin-bottom:4px; }
+  .panel-h .p-sub { font-size:12px; color:#9d8fe0; font-weight:400; margin-left:8px; }
+  .take { margin-top:10px; font-size:14px; color:#efeaff; line-height:1.7; border-left:3px solid #a78bfa; background:rgba(167,139,250,.10); padding:8px 14px; border-radius:0 8px 8px 0; }
+  .take b { color:#c084fc; }
+
+  .legend { display:flex; gap:18px; flex-wrap:wrap; margin-top:10px; font-size:13px; color:#b3a6e8; }
+  .legend i { display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:6px; vertical-align:-1px; }
+  .axis-note { font-size:12px; color:#b3a6e8; margin-top:6px; }
+
+  /* 表格 */
+  table { width:100%; border-collapse:collapse; margin-top:10px; font-size:13.5px; }
+  th,td { padding:8px 10px; text-align:left; border-bottom:1px solid rgba(167,139,250,.15); }
+  th { color:#b3a6e8; font-weight:600; background:rgba(167,139,250,.07); }
+  td.num { font-variant-numeric:tabular-nums; text-align:right; color:#ece7ff; }
+  tr.hl td { background:rgba(251,191,36,.07); }
+  td .up { color:#6ee7b7; } td .down { color:#f9a8d4; }
+
+  /* 建议卡 */
+  .adv-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:14px; }
+  .adv { background:linear-gradient(160deg,#251753,#1c1244); border:1px solid rgba(167,139,250,.3); border-radius:12px; padding:16px 18px; }
+  .adv .no { font-size:13px; font-weight:800; color:#fbbf24; letter-spacing:2px; }
+  .adv .impact { display:inline-block; float:right; font-size:11.5px; font-weight:700; color:#d8cbfb; border:1px solid rgba(192,132,252,.5); border-radius:12px; padding:2px 9px; letter-spacing:1px; }
+  .adv h4 { font-size:16px; margin:8px 0 6px; color:#fff; }
+  .adv p { font-size:13.5px; color:#c4b5fd; line-height:1.65; margin:0; }
+
+  .foot { margin-top:24px; padding-top:14px; border-top:1px solid rgba(167,139,250,.2); font-size:12px; color:#b3a6e8; display:flex; justify-content:space-between; align-items:center; }
+  .foot .demo { color:#c4b5fd; }
+</style>
+</head>
+<body>
+<div class="wrap" id="wrapMain">
+
+  <!-- ===== 头部 ===== -->
+  <div class="top">
+    <div>
+      <div class="kicker">AG 运营组 · 大屏智能体促活 · 月度复盘</div>
+      <div class="h1">大屏智能体促活活动<b>推送时点与人群定向优化</b></div>
+      <div class="subline">「周末幸运大抽奖」四期监测复盘 · 2026.10.10-11.01 · 目标用户 21 万「小华」智能体用户</div>
+    </div>
+  </div>
+
+  <!-- ===== 核心结论 ===== -->
+  <div class="hero">
+    <div class="hero-main">
+      <span class="hero-tag">核心结论</span>
+      <span class="big">推送时点前置 + 人群定向话术</span> 是本期促活活动的两大优化抓手：
+      <span class="hl">10.24-25 期渗透率 9.7% 创四期新高</span>（短信 17:30 触达 · 位于峰值前），
+      而 <span class="hl">18:45 触达的 10.17-18 期渗透率仅 7.0%</span>；
+      拉新 + 唤醒用户合计占参与人群 34%，为活动核心增量，但<span class="hl">唤醒用户抽奖后搜索转化率为 0%</span>，话术引导存在明确缺口。
+    </div>
+    <div class="hero-sub">迭代优先级：推送时点前置（17:00 前触达）＞ 唤醒人群定向话术 ＞ 抽奖后搜索引导承接</div>
+  </div>
+
+  <!-- ===== 01 决策建议（首屏） ===== -->
+  <div class="sec">
+    <div class="sec-head"><span class="sec-no">01</span><span class="sec-title">决策建议</span><span class="sec-sub">按预期影响排序 · 可直接落地</span></div>
+    <div class="adv-grid">
+      <div class="adv">
+        <div class="no">建议 01</div><span class="impact">影响 · 高</span>
+        <h4>推送时点前置至 17:00 前</h4>
+        <p>将短信 / 主动话术触达统一前置到 17:00 前（峰值前 30-60 分钟），规避 18:45 触达导致的渗透率下滑（7.0% vs 9.7%）；同步固化「周五预热 + 周六日活动中」话术节奏。</p>
+      </div>
+      <div class="adv">
+        <div class="no">建议 02</div><span class="impact">影响 · 中高</span>
+        <h4>唤醒人群定向话术承接</h4>
+        <p>唤醒用户参与度不低（人均 2.94 次）但搜索转化为 0，回流后需专属话术（如「欢迎回来 + 内容推荐」）承接，把召回流量转化为内容消费与搜索行为。</p>
+      </div>
+      <div class="adv">
+        <div class="no">建议 03</div><span class="impact">影响 · 中</span>
+        <h4>抽奖后搜索引导闭环</h4>
+        <p>抽奖结束页增加搜索引导（「想找什么，对小华说」），承接 11.3% 的搜索意图；活跃用户搜索转化 16.0% 最高，可作为搜索功能冷启动的核心种子人群。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 02 月度概览 ===== -->
+  <div class="sec">
+    <div class="sec-head"><span class="sec-no">02</span><span class="sec-title">月度概览</span><span class="sec-sub">四期合计口径 · 含基线期 9.12-13</span></div>
+    <div class="kpi-row">
+      <div class="kpi"><div class="lab">渗透率峰值</div><div class="num">9.7<small>%</small></div><div class="note">口径：抽奖用户 ÷ 当期语音用户；10.24-25 期 · 较基线 +1.6pp</div></div>
+      <div class="kpi"><div class="lab">单期抽奖用户峰值</div><div class="num">150<small>人</small></div><div class="note">10.24-25 期 · 抽奖 498 次</div></div>
+      <div class="kpi"><div class="lab">四期抽奖总次数</div><div class="num">1,706<small>次</small></div><div class="note">10 月四期合计 · 月度运营量</div></div>
+      <div class="kpi"><div class="lab">抽满 3 次及以上</div><div class="num">91.3<small>%</small></div><div class="note">10.24-25 期 · 参与深度四期最高</div></div>
+    </div>
+  </div>
+
+  <!-- ===== 02 四期趋势 ===== -->
+  <div class="sec">
+    <div class="sec-head"><span class="sec-no">03</span><span class="sec-title">四期规模与渗透趋势</span></div>
+    <div class="panel">
+      <div class="panel-h">抽奖用户数（柱）与渗透率（折线）<span class="p-sub">渗透率 = 抽奖用户 / 语音用户</span></div>
+      <svg width="1420" height="420" viewBox="0 0 1420 420" xmlns="http://www.w3.org/2000/svg">
+        <!-- 网格 -->
+        <g stroke="rgba(167,139,250,.14)" stroke-width="1">
+          <line x1="90" y1="70" x2="1380" y2="70"/><line x1="90" y1="150" x2="1380" y2="150"/>
+          <line x1="90" y1="230" x2="1380" y2="230"/><line x1="90" y1="310" x2="1380" y2="310"/>
+          <line x1="90" y1="390" x2="1380" y2="390"/>
+        </g>
+        <g fill="#b3a6e8" font-size="11.5">
+          <text x="80" y="74" text-anchor="end">160</text><text x="80" y="154" text-anchor="end">120</text>
+          <text x="80" y="234" text-anchor="end">80</text><text x="80" y="314" text-anchor="end">40</text><text x="80" y="394" text-anchor="end">0</text>
+        </g>
+        <g font-size="13" fill="#b3a6e8" text-anchor="middle">
+          <text x="220" y="412">9.12-13 基线</text><text x="505" y="412">10.10-11</text>
+          <text x="790" y="412">10.17-18</text><text x="1075" y="412">10.24-25</text><text x="1360" y="412">10.31-11.01</text>
+        </g>
+        <!-- 柱：抽奖用户 117 126 111 150 145 · y底380 · 高=值×2 -->
+        <g>
+          <rect x="170" y="146" width="100" height="234" rx="4" fill="rgba(167,139,250,.75)"/>
+          <rect x="455" y="128" width="100" height="252" rx="4" fill="rgba(167,139,250,.75)"/>
+          <rect x="740" y="158" width="100" height="222" rx="4" fill="rgba(167,139,250,.75)"/>
+          <rect x="1025" y="80" width="100" height="300" rx="4" fill="#a78bfa"/>
+          <rect x="1310" y="90" width="100" height="290" rx="4" fill="none" stroke="#c084fc" stroke-width="2" stroke-dasharray="6 4"/>
+          <g fill="#efeaff" font-size="12.5" font-weight="700" text-anchor="middle">
+            <text x="220" y="162">117</text><text x="505" y="144">126</text><text x="790" y="174">111</text>
+            <text x="1075" y="96">150</text><text x="1360" y="106" fill="#e9d5ff">145</text>
+          </g>
+        </g>
+        <!-- 折线：渗透率 8.1 9.2 7.0 9.7 9.3 → y=390-v*34 -->
+        <g fill="none" stroke="#fbbf24" stroke-width="3">
+          <polyline points="220,114.6 505,77.2 790,152 1075,60.2 1360,73.8" stroke-dasharray="10 5 2 5"/>
+        </g>
+        <g>
+          <circle cx="220" cy="114.6" r="5.5" fill="#fbbf24"/><circle cx="505" cy="77.2" r="5.5" fill="#fbbf24"/>
+          <circle cx="790" cy="152" r="5.5" fill="#fbbf24"/><circle cx="1075" cy="60.2" r="5.5" fill="#fbbf24"/>
+          <circle cx="1360" cy="73.8" r="5.5" fill="none" stroke="#fbbf24" stroke-width="2.5"/>
+        </g>
+        <g fill="#fde68a" font-size="12" font-weight="700" text-anchor="middle">
+          <text x="220" y="102">8.1%</text><text x="505" y="64">9.2%</text><text x="790" y="140">7.0%</text>
+          <text x="1075" y="47">9.7%</text><text x="1360" y="60">9.3%</text>
+        </g>
+      </svg>
+      <div class="take"><b>读法：</b>抽奖规模与渗透率在 10.17-18 期出现双低谷（111 人 / 7.0%），10.24-25 期修复至四期最高（150 人 / 9.7%）；两期差异与推送时点强相关（见 03 模块）。</div>
+      <div class="legend"><span><i style="background:#a78bfa"></i>抽奖用户数（人）</span><span><i style="background:#fbbf24"></i>渗透率（%）</span></div>
+    </div>
+  </div>
+
+  <!-- ===== 03 推送时点 ===== -->
+  <div class="sec">
+    <div class="sec-head"><span class="sec-no">04</span><span class="sec-title">推送时点与进入转盘峰值</span><span class="sec-sub">短信触达时点 vs 用户进入转盘时段分布</span></div>
+    <div class="panel">
+      <div class="panel-h">各期短信发送时点与峰值时段<span class="p-sub">峰值均集中在 17-18 点 · 晚饭前黄金触达窗口</span></div>
+      <svg width="1420" height="380" viewBox="0 0 1420 380" xmlns="http://www.w3.org/2000/svg">
+        <!-- 网格 -->
+        <g stroke="rgba(167,139,250,.14)"><line x1="90" y1="90" x2="1380" y2="90"/><line x1="90" y1="170" x2="1380" y2="170"/><line x1="90" y1="250" x2="1380" y2="250"/><line x1="90" y1="330" x2="1380" y2="330"/></g>
+        <g fill="#b3a6e8" font-size="11.5"><text x="80" y="94" text-anchor="end">40</text><text x="80" y="174" text-anchor="end">30</text><text x="80" y="254" text-anchor="end">20</text><text x="80" y="334" text-anchor="end">10</text></g>
+        <text x="90" y="52" fill="#b3a6e8" font-size="11.5">单位：进入转盘人数</text>
+        <!-- 时间轴刻度：12:00=90 → 22:00=1380，每分钟2.15px -->
+        <g fill="#b3a6e8" font-size="12.5" text-anchor="middle">
+          <text x="90" y="360">12:00</text><text x="348" y="360">14:00</text><text x="606" y="360">16:00</text>
+          <text x="735" y="360">17:00</text><text x="864" y="360">18:00</text><text x="993" y="360">19:00</text>
+          <text x="1122" y="360">20:00</text><text x="1251" y="360">21:00</text><text x="1380" y="360">22:00</text>
+        </g>
+        <!-- 17-18点黄金窗口高亮 -->
+        <rect x="735" y="56" width="129" height="278" fill="rgba(251,191,36,.07)" stroke="rgba(251,191,36,.35)" stroke-dasharray="4 3"/>
+        <text x="799" y="74" fill="#fbbf24" font-size="12" text-anchor="middle" font-weight="700">17-18 点 · 峰值黄金窗口</text>
+        <!-- 时段柱（10.24-25 示例分布 16-21点，y底330，高=值×1） -->
+        <g fill="rgba(167,139,250,.5)">
+          <rect x="580" y="304" width="52" height="26" rx="3"/><rect x="709" y="296" width="52" height="34" rx="3"/>
+          <rect x="838" y="286" width="52" height="44" rx="3"/>
+          <rect x="967" y="268" width="52" height="62" rx="3" fill="#a78bfa"/>
+          <rect x="1096" y="274" width="52" height="56" rx="3" fill="#a78bfa"/>
+          <rect x="1225" y="294" width="52" height="36" rx="3"/><rect x="1354" y="308" width="52" height="22" rx="3"/>
+        </g>
+        <g fill="#efeaff" font-size="11.5" font-weight="700" text-anchor="middle">
+          <text x="606" y="296">16:00</text><text x="735" y="288">16-17</text><text x="864" y="278">17:00前</text>
+          <text x="993" y="260">17-18</text><text x="1122" y="266">18-19</text><text x="1251" y="286">19-20</text><text x="1380" y="300">20-21</text>
+        </g>
+        <!-- 短信触达时点：17:15=767 / 18:45=961 / 17:30=799 / 17:00=735 -->
+        <g>
+          <line x1="735" y1="20" x2="735" y2="330" stroke="#fbbf24" stroke-width="2.5" stroke-dasharray="6 4"/>
+          <line x1="767" y1="20" x2="767" y2="330" stroke="#34d399" stroke-width="2.5" stroke-dasharray="6 4"/>
+          <line x1="799" y1="20" x2="799" y2="330" stroke="#34d399" stroke-width="2.5" stroke-dasharray="6 4"/>
+          <line x1="961" y1="20" x2="961" y2="330" stroke="#f472b6" stroke-width="2.5"/>
+        </g>
+        <g font-size="12" font-weight="700">
+          <text x="961" y="36" fill="#f472b6" text-anchor="middle">P2 短信 18:45 · 晚于峰值</text>
+          <text x="767" y="52" fill="#34d399" text-anchor="middle">P1 17:15</text>
+          <text x="799" y="352" fill="#34d399" text-anchor="middle">P3 17:30</text>
+          <text x="735" y="352" fill="#fbbf24" text-anchor="middle">P4 17:00</text>
+        </g>
+      </svg>
+      <div class="take"><b>关键证据：</b>三期数据中，短信 18:45 触达的 10.17-18 期渗透率仅 <b>7.0%</b>（四期最低），而 17:30 前触达的 10.10-11 / 10.24-25 期渗透率 9.2% / 9.7%；进入转盘峰值稳定在 <b>17-18 点</b>（P1 占 19.5%、P2 占 19.7%）。结论：<b>短信应在 17:00 前（峰值前 30-60 分钟）触达</b>，错过黄金窗口将直接拉低当期转化。</div>
+      <div class="legend"><span><i style="background:#34d399"></i>峰值前触达（P1/P3）</span><span><i style="background:#f472b6"></i>峰值后触达（P2）</span><span><i style="background:#fbbf24"></i>P4 17:00 前触达</span></div>
+    </div>
+  </div>
+
+  <!-- ===== 04 用户分层 ===== -->
+  <div class="sec">
+    <div class="sec-head"><span class="sec-no">05</span><span class="sec-title">人群分层与定向</span><span class="sec-sub">活跃 / 拉新 / 唤醒三类人群 · 构成 + 质量</span></div>
+    <div class="panel">
+      <div class="panel-h">10.24-25 期参与人群构成（150 人）<span class="p-sub">拉新 = 8.5 后首次使用智能语音 · 唤醒 = 沉默 ≥30 天回流</span></div>
+      <div style="display:flex; gap:30px; align-items:center; margin-top:6px;">
+        <!-- 环形 62.7 / 22.7 / 11.3 -->
+        <div style="text-align:center;">
+          <svg width="330" height="330" viewBox="0 0 330 330" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="165" cy="165" r="112" fill="none" stroke="rgba(167,139,250,.15)" stroke-width="34"/>
+            <!-- 活跃 62.7%：0→225.7°；拉新22.7%：225.7→307.4°；唤醒11.3%：307.4→348.1° -->
+            <g transform="rotate(-90 165 165)">
+              <circle cx="165" cy="165" r="112" fill="none" stroke="#a78bfa" stroke-width="34" stroke-dasharray="225.7 360" pathLength="360"/>
+              <circle cx="165" cy="165" r="112" fill="none" stroke="#c084fc" stroke-width="34" stroke-dasharray="81.7 360" stroke-dashoffset="-225.7" pathLength="360"/>
+              <circle cx="165" cy="165" r="112" fill="none" stroke="#fbbf24" stroke-width="34" stroke-dasharray="40.7 360" stroke-dashoffset="-307.4" pathLength="360"/>
+            </g>
+            <text x="165" y="158" fill="#fff" font-size="26" font-weight="800" text-anchor="middle">150</text>
+            <text x="165" y="182" fill="#b3a6e8" font-size="12.5" text-anchor="middle">参与用户</text>
+          </svg>
+          <div class="axis-note" style="margin-top:8px; max-width:280px; margin-left:auto; margin-right:auto;">环形图仅展示已分层 145 人构成，5 位参与用户未纳入分层统计</div>
+        </div>
+        <div style="flex:1; min-width:0;">
+          <table>
+            <tr><th>人群</th><th class="num">人数</th><th class="num">占比</th><th class="num">人均抽奖</th><th class="num">抽奖后搜索转化</th></tr>
+            <tr class="hl"><td><span style="color:#a78bfa">■</span> 活跃用户（近30天活跃）</td><td class="num">94</td><td class="num">62.7%</td><td class="num">3.44 次</td><td class="num up">16.0% · 15人</td></tr>
+            <tr><td><span style="color:#c084fc">■</span> 拉新用户（8.5后首次使用）</td><td class="num">34</td><td class="num">22.7%</td><td class="num">3.21 次</td><td class="num">5.9% · 2人</td></tr>
+            <tr><td><span style="color:#fbbf24">■</span> 唤醒用户（沉默≥30天回流）</td><td class="num">17</td><td class="num">11.3%</td><td class="num">2.94 次</td><td class="num down">0% · 0人</td></tr>
+          </table>
+          <div class="axis-note" style="margin-top:6px;">注：分层明细合计 145 人，5 人未细分；占比按 150 人参与口径计算。</div>
+          <div class="take"><b>读法：</b>活跃用户是参与主力（62.7%、人均 3.44 次、搜索转化 16.0%）；<b>拉新 + 唤醒合计 51 人、占 34%</b>，是活动核心增量——拉新激活新用户、唤醒召回沉默用户；但<b>唤醒用户抽奖后搜索转化率为 0</b>，回流后缺少话术承接，是明确的定向优化机会。</div>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-h">拉新 / 唤醒用户四期规模<span class="p-sub">增量人群质量与稳定性</span></div>
+      <svg width="1420" height="330" viewBox="0 0 1420 330" xmlns="http://www.w3.org/2000/svg">
+        <g stroke="rgba(167,139,250,.14)"><line x1="90" y1="70" x2="1380" y2="70"/><line x1="90" y1="150" x2="1380" y2="150"/><line x1="90" y1="230" x2="1380" y2="230"/><line x1="90" y1="310" x2="1380" y2="310"/></g>
+        <g fill="#b3a6e8" font-size="11.5"><text x="80" y="74" text-anchor="end">80</text><text x="80" y="154" text-anchor="end">60</text><text x="80" y="234" text-anchor="end">40</text><text x="80" y="314" text-anchor="end">20</text></g>
+        <g font-size="13" fill="#b3a6e8" text-anchor="middle">
+          <text x="240" y="322">10.10-11</text><text x="590" y="322">10.17-18</text><text x="940" y="322">10.24-25</text><text x="1290" y="322">10.31-11.01</text>
+        </g>
+        <!-- 拉新 49 43 34 35 · 唤醒 12 23 17 21 · y底310 · 高=值×3 -->
+        <g>
+          <rect x="160" y="163" width="80" height="147" rx="4" fill="#c084fc"/>
+          <rect x="510" y="181" width="80" height="129" rx="4" fill="#c084fc"/>
+          <rect x="860" y="208" width="80" height="102" rx="4" fill="#c084fc"/>
+          <rect x="1210" y="205" width="80" height="105" rx="4" fill="none" stroke="#c084fc" stroke-width="2" stroke-dasharray="6 4"/>
+          <rect x="270" y="274" width="80" height="36" rx="4" fill="#fbbf24"/>
+          <rect x="620" y="241" width="80" height="69" rx="4" fill="#fbbf24"/>
+          <rect x="970" y="259" width="80" height="51" rx="4" fill="#fbbf24"/>
+          <rect x="1320" y="247" width="80" height="63" rx="4" fill="none" stroke="#fbbf24" stroke-width="2" stroke-dasharray="6 4"/>
+          <g fill="#fff" font-size="13" font-weight="700" text-anchor="middle">
+            <text x="200" y="152">49</text><text x="550" y="170">43</text><text x="900" y="197">34</text><text x="1250" y="194" fill="#f4d9ff">35</text>
+            <text x="310" y="264">12</text><text x="660" y="231">23</text><text x="1010" y="249">17</text><text x="1360" y="237" fill="#fde68a">21</text>
+          </g>
+        </g>
+        <g font-size="12.5">
+          <text x="90" y="56" fill="#c084fc" font-weight="700">拉新用户</text>
+          <text x="90" y="76" fill="#fbbf24" font-weight="700">唤醒用户</text>
+        </g>
+      </svg>
+      <div class="take"><b>读法：</b>拉新人群维持 34-49 人/期的高位（活动为语音智能体持续导入新用户）；唤醒人群从 12 人升至 17-23 人区间，结合 9 月「唤醒用户粘性较强」复盘结论，<b>唤醒召回是低成本高 ROI 的增量通道</b>，应配合定向话术放大。</div>
+      <div class="axis-note">注：唤醒人群占比由 9.4% 升至 11.3%-14.5% 区间。</div>
+    </div>
+  </div>
+
+  <!-- ===== 05 抽奖后行为转化 ===== -->
+  <div class="sec">
+    <div class="sec-head"><span class="sec-no">06</span><span class="sec-title">抽奖后行为转化</span><span class="sec-sub">10.24-25 期 · 抽奖 → 语音互动 → 语音搜索</span></div>
+    <div class="panel">
+      <div class="panel-h">抽奖后的语音承接链路<span class="p-sub">275 条后续语音：聊天 197 / 搜索 55 / 其他 23</span></div>
+      <svg width="1420" height="300" viewBox="0 0 1420 300" xmlns="http://www.w3.org/2000/svg">
+        <defs><marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#9d8fe0"/></marker></defs>
+        <!-- 三级承接：150(100%) → 63(42%) → 17(11.3%) · 条宽=满宽×占比 -->
+        <g>
+          <rect x="90" y="46" width="1200" height="52" rx="6" fill="rgba(167,139,250,.55)"/>
+          <rect x="90" y="126" width="504" height="52" rx="6" fill="rgba(192,132,252,.62)"/>
+          <rect x="90" y="206" width="136" height="52" rx="6" fill="rgba(251,191,36,.68)"/>
+        </g>
+        <g font-size="14" fill="#fff" font-weight="800">
+          <text x="110" y="78">参与抽奖 150 人 · 100%</text>
+          <text x="110" y="158">后续语音互动 63 人 · 42.0%</text>
+          <text x="110" y="238">语音搜索 17 人 · 11.3%</text>
+        </g>
+        <!-- 连接箭头 -->
+        <g stroke="#9d8fe0" stroke-width="1.6" fill="none">
+          <path d="M640,100 L700,124" marker-end="url(#arr)"/>
+          <path d="M545,180 L570,204" marker-end="url(#arr)"/>
+        </g>
+        <text x="90" y="288" fill="#b3a6e8" font-size="12">注：各层占比占上一级抽奖用户基数</text>
+      </svg>
+      <div class="take"><b>读法：</b>每 100 名抽奖用户中约 42 人继续与小华语音互动、约 11 人发起搜索。聊天 197 条是互动主力（抽奖话题归入聊天场景，与 10 月「聊天场景占比升至 46.8%」一致），<b>搜索 55 条说明存在明确的内容 / 功能搜索意图</b>，当前缺少承接引导，是下期优化的直接抓手。</div>
+      <div class="legend"><span><i style="background:rgba(167,139,250,.55)"></i>抽奖用户</span><span><i style="background:rgba(192,132,252,.6)"></i>语音互动</span><span><i style="background:rgba(251,191,36,.65)"></i>语音搜索</span></div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span>大屏智能体促活活动推送时点与人群定向优化 · 2026.10</span>
+    
+  </div>
+</div>
+
+<script>
+(function(){
+  function fitView(){
+    var vw = document.documentElement.clientWidth || 1600;
+    var s = Math.min(1, vw/1600);
+    if("zoom" in document.body.style){ document.body.style.zoom = s; }
+  }
+  fitView();
+  window.addEventListener("resize", fitView);
+})();
+</script>
+</body>
+</html>
